@@ -2,7 +2,10 @@
 
 #include <chrono>
 #include <memory>
+#include <set>
+
 #include "opentelemetry/sdk/trace/recordable.h"
+#include "opentelemetry/sdk/trace/span_data.h"
 #include "opentelemetry/sdk/trace/exporter.h"
 #include "opentelemetry/sdk/trace/processor.h"
 
@@ -39,19 +42,16 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * OnStart is called when a span is started.
    * @param span a recordable for a span that was just started
    */
-  void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {}
+  //void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {
+  //  
+  //}
+  void OnStart(opentelemetry::sdk::trace::SpanData &span) noexcept;
 
   /**
    * OnEnd is called when a span is ended.
    * @param span a recordable for a span that was ended
    */
-  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override {
-    nostd::span<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> batch(&span, 1);
-    if (exporter_->Export(batch) == opentelemetry::sdk::trace::ExportResult::kFailure) {
-      /* Once it is defined how the SDK does logging, an error should be
-       * logged in this case. */
-    }
-  }
+  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &&span) noexcept;
 
   /**
    * Export all ended spans that have not yet been exported.
@@ -75,7 +75,10 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
   }
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
+  bool IsSampled;
+  std::set<opentelemetry::sdk::trace::SpanData*> RunningSpans;
+  std::set<opentelemetry::sdk::trace::SpanData*> CompletedSpans;
 };
-}  // namespace trace
+}  // namespace zpages
 }  // namespace sdk
 OPENTELEMETRY_END_NAMESPACE
