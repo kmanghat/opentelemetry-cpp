@@ -2,26 +2,27 @@
 
 #include <chrono>
 #include <memory>
-#include "opentelemetry/sdk/trace/recordable.h"
 #include "include/opentelemetry/sdk/trace/processor.h"
+#include "opentelemetry/sdk/trace/recordable.h"
+#include "opentelemetry/sdk/trace/exporter.h"
+#include "opentelemetry/sdk/trace/processor.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace sdk {
-namespace trace {
+namespace zapges {
 /**
- * Span processor allow hooks for span start and end method invocations.
+ * The simple span processor passes finished recordables to 
+ * Data Aggregator as soon as they are finished for TraceZ.
  *
- * Built-in span processors are responsible for batching and conversion of
- * spans to exportable representation and passing batches to exporters.
  */
-class SpanProcessor {
+class TracezSpanProcessor : public SpanProcessor {
  public:
   // ~SpanProcessor() {}
   /**
    * Initialize a simple span processor.
    * @param exporter the exporter used by the span processor
    */
-  explicit SpanProcessor(std::unique_ptr<SpanExporter> &&exporter) noexcept
+  explicit TracezSpanProcessor(std::unique_ptr<SpanExporter> &&exporter) noexcept
       : exporter_(std::move(exporter)) {}
 
   /**
