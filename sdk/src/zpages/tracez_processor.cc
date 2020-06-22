@@ -9,7 +9,7 @@
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace sdk {
-namespace trace {
+namespace zapges {
 /**
  * The simple span processor passes finished recordables to 
  * Data Aggregator as soon as they are finished for TraceZ.
