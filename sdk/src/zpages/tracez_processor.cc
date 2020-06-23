@@ -17,6 +17,14 @@ namespace zpages {
      }
   }
 
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> TracezSpanProcessor::GetRunningSpans() noexcept {
+    return RunningSpans;
+  }
+
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> TracezSpanProcessor::GetCompletedSpans() noexcept {
+    return CompletedSpans;
+  }
+
 
 }  // namespace zpages
 }  // namespace sdk

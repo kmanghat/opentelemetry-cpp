@@ -3,6 +3,7 @@
 #include <chrono>
 #include <memory>
 #include <unordered_set>
+#include <utility>
 
 #include "opentelemetry/sdk/trace/recordable.h"
 #include "opentelemetry/sdk/trace/span_data.h"
@@ -35,7 +36,6 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
     return exporter_->MakeRecordable();
   }
 
-
   /**
    * OnStart is called when a span is started.
    * @param span a recordable for a span that was just started
@@ -47,6 +47,10 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * @param span a recordable for a span that was ended
    */
   void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &&span) noexcept;
+
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> GetRunningSpans() noexcept;
+  
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> GetCompletedSpans() noexcept;
 
   /**
    * Export all ended spans that have not yet been exported.
@@ -68,6 +72,7 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
   void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override {
     exporter_->Shutdown(timeout);
   }
+
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
   bool IsSampled;
