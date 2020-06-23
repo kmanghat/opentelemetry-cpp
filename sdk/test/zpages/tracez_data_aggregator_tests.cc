@@ -41,3 +41,11 @@ TEST(TraceZDataAggregator, getSpanCountForLatencyBoundaryReturnsEmptyMap)
       traceZDataAggregator.getSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
   ASSERT_TRUE(latencyCountPerName.empty());
 }
+
+TEST(TraceZDataAggregator, getSpanCountPerLatencyBoundaryReturnEmptyMap)
+{
+  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::unordered_map<std::string, std::vector<int>> latencyCountPerName =
+      traceZDataAggregator.getSpanCountPerLatencyBoundary();
+  ASSERT_TRUE(latencyCountPerName.empty());
+}

@@ -38,6 +38,12 @@ std::unordered_map<std::string, int> TraceZDataAggregator::getSpanCountForLatenc
   return latencyCountPerName;
 }
 
+std::unordered_map<std::string, std::vector<int>> TraceZDataAggregator::getSpanCountPerLatencyBoundary()
+{
+  std::unordered_map<std::string, std::vector<int>> latencyHistogramPerName;
+  return latencyHistogramPerName;
+}
+
 }  // namespace zpages
 }  // namespace sdk
 OPENTELEMETRY_END_NAMESPACE
