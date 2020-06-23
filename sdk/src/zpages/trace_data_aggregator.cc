@@ -19,7 +19,9 @@ std::vector<opentelemetry::nostd::string_view> TraceZDataAggregator::getSpanName
   std::unordered_set<opentelemetry::sdk::trace::SpanData*> runningSpans = traceZSpanProcessor->GetRunningSpans();
   std::unordered_set<opentelemetry::sdk::trace::SpanData*> completedSpans = traceZSpanProcessor->GetCompletedSpans();
   
-  for(auto span: runningSpans)spanNames.push_back(span->GetName());
+  std::unordered_set<const char*> us;
+  
+  for(auto span: runningSpans)us.insert(span->GetName().data());
   for(auto span: completedSpans)spanNames.push_back(span->GetName());
   return spanNames;
 }
