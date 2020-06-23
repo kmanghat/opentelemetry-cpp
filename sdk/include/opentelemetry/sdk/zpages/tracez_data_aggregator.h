@@ -32,6 +32,7 @@ public:
   
   std::unordered_map<std::string, int> getSpanCountForLatencyBoundary(LatencyBoundary latencyBoundary);
   
+  std::unordered_map<std::string, std::vector<int> LatencyCount> getSpanCountPerLatencyBoundary();
 private:
   TracezSpanProcessor* traceZSpanProcessor;
 

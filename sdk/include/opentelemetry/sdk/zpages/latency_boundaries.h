@@ -35,7 +35,7 @@ public:
     latencyUpperBound = upperBound;
   }
   
-  long int getLatencyLowerBound() const{
+  long int getLatencyLowerBound() const {
     return latencyLowerBound;
   }
   
