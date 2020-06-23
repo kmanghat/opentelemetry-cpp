@@ -19,12 +19,10 @@ namespace zpages {
  */
 class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
  public:
-  // ~SpanProcessor() {}
   /**
    * Initialize a simple span processor.
    * @param exporter the exporter used by the span processor
    */
-  //explicit TracezSpanProcessor(std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> &&exporter) noexcept override;
   explicit TracezSpanProcessor(std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> &&exporter) noexcept
       : exporter_(std::move(exporter)) {}
 
@@ -42,9 +40,6 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * OnStart is called when a span is started.
    * @param span a recordable for a span that was just started
    */
-  //void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {
-  //  
-  //}
   void OnStart(opentelemetry::sdk::trace::SpanData &span) noexcept;
 
   /**

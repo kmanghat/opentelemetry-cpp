@@ -11,8 +11,10 @@ namespace zpages {
   void TracezSpanProcessor::OnEnd(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &&span) noexcept {
      if (!IsSampled) return;
      auto completedSpan = RunningSpans.find(span.get());
-     CompletedSpans.insert(*completedSpan);
-     RunningSpans.erase(completedSpan);
+     if (completedSpan != RunningSpans.end()) {
+       CompletedSpans.insert(*completedSpan);
+       RunningSpans.erase(completedSpan);
+     }
   }
 
 
