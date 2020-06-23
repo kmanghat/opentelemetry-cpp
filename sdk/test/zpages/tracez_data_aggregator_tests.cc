@@ -1,7 +1,7 @@
-#include "opentelemetry/sdk/zpages/tracez_data_aggregator.h"
-#include "opentelemetry/sdk/trace/simple_processor.h"
 #include "opentelemetry/nostd/span.h"
+#include "opentelemetry/sdk/trace/simple_processor.h"
 #include "opentelemetry/sdk/trace/span_data.h"
+#include "opentelemetry/sdk/zpages/tracez_data_aggregator.h"
 
 #include <gtest/gtest.h>
 
@@ -26,19 +26,18 @@ TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
   ASSERT_TRUE(spanCount.empty());
 }
 
-
 TEST(TraceZDataAggregator, getRunningSpansWithGivenNameReturnsEmptyVector)
 {
   TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
-  std::vector<SpanData> runningSpans = 
-  traceZDataAggregator.getRunningSpansWithGivenName("Non existing span name");
+  std::vector<SpanData> runningSpans =
+      traceZDataAggregator.getRunningSpansWithGivenName("Non existing span name");
   ASSERT_TRUE(runningSpans.empty());
 }
 
 TEST(TraceZDataAggregator, getSpanCountForLatencyBoundaryReturnsEmptyMap)
 {
   TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
-  std::unordered_map<std::string, int> latencyCountPerName = 
-  traceZDataAggregator.getSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
+  std::unordered_map<std::string, int> latencyCountPerName =
+      traceZDataAggregator.getSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
   ASSERT_TRUE(latencyCountPerName.empty());
 }
