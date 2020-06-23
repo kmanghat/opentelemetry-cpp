@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <memory>
-#include <set>
+#include <unordered_set>
 
 #include "opentelemetry/sdk/trace/recordable.h"
 #include "opentelemetry/sdk/trace/span_data.h"
@@ -71,8 +71,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
   bool IsSampled;
-  std::set<opentelemetry::sdk::trace::SpanData*> RunningSpans;
-  std::set<opentelemetry::sdk::trace::SpanData*> CompletedSpans;
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> RunningSpans;
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> CompletedSpans;
 };
 }  // namespace zpages
 }  // namespace sdk
