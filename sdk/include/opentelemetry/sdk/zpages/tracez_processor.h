@@ -45,15 +45,17 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * @param span a recordable for a span that was just started
    */
   void OnStart(opentelemetry::sdk::trace::SpanData &span) noexcept;
+  void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {}
 
   /**
    * OnEnd is called when a span is ended.
    * @param span a recordable for a span that was ended
    */
   void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &&span) noexcept;
+  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override {} 
 
   std::unordered_set<opentelemetry::sdk::trace::SpanData*> GetRunningSpans() noexcept;
-  
+
   std::unordered_set<opentelemetry::sdk::trace::SpanData*> GetCompletedSpans() noexcept;
 
   /**
