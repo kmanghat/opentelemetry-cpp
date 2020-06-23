@@ -9,12 +9,15 @@
 #include "opentelemetry/sdk/trace/span_data.h"
 #include "opentelemetry/sdk/trace/exporter.h"
 #include "opentelemetry/sdk/trace/processor.h"
+#include "opentelemetry/sdk/trace/recordable.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-namespace sdk {
-namespace zpages {
+namespace sdk
+{
+namespace zpages
+{
 /**
- * The simple span processor passes finished recordables to 
+ * The simple span processor passes finished recordables to
  * Data Aggregator as soon as they are finished for TraceZ.
  *
  */
@@ -32,7 +35,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * associated exporter.
    * @return a newly initialized recordable
    */
-  std::unique_ptr<opentelemetry::sdk::trace::Recordable> MakeRecordable() noexcept override {
+  std::unique_ptr<opentelemetry::sdk::trace::Recordable> MakeRecordable() noexcept override
+  {
     return exporter_->MakeRecordable();
   }
 
@@ -58,8 +62,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * timeout is applied.
    */
   void ForceFlush(
-      std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override {
-  }
+      std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
+  {}
 
   /**
    * Shut down the processor and do any cleanup required. Ended spans are
@@ -69,7 +73,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * @param timeout an optional timeout, the default timeout of 0 means that no
    * timeout is applied.
    */
-  void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override {
+  void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
+  {
     exporter_->Shutdown(timeout);
   }
 
