@@ -7,9 +7,9 @@ namespace sdk
 namespace zpages
 {
 
-TraceZDataAggregator::TraceZDataAggregator(opentelemetry::sdk::trace::SpanProcessor* traceZSpanProcessor)
+TraceZDataAggregator::TraceZDataAggregator(TracezSpanProcessor* spanProcessor)
 {
-  spanProcessor = traceZSpanProcessor;
+  traceZSpanProcessor = spanProcessor;
 }
 
 
@@ -31,6 +31,13 @@ std::vector<opentelemetry::sdk::trace::SpanData> TraceZDataAggregator::getRunnin
   std::vector<opentelemetry::sdk::trace::SpanData> spansWithSameName;
   return spansWithSameName;
 }
+
+std::unordered_map<std::string, int> TraceZDataAggregator::getSpanCountForLatencyBoundary(LatencyBoundary latencyBoundary)
+{
+  std::unordered_map<std::string, int> latencyCountPerName;
+  return latencyCountPerName;
+}
+
 
 }  // namespace trace
 }  // namespace sdk

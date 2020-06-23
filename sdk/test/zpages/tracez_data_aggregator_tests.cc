@@ -14,14 +14,14 @@ using namespace opentelemetry::sdk::zpages;
 
 TEST(TraceZDataAggregator, getSpanNamesReturnsEmptySet)
 {
-  TraceZDataAggregator traceZDataAggregator(new SimpleSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
   std::unordered_set<std::string> spanNames = traceZDataAggregator.getSpanNames();
   ASSERT_TRUE(spanNames.size() == 0);
 }
 
 TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
 {
-  TraceZDataAggregator traceZDataAggregator(new SimpleSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
   std::unordered_map<std::string, int> spanCount = traceZDataAggregator.getCountOfRunningSpans();
   ASSERT_TRUE(spanCount.empty());
 }
@@ -29,10 +29,16 @@ TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
 
 TEST(TraceZDataAggregator, getRunningSpansWithGivenNameReturnsEmptyVector)
 {
-  TraceZDataAggregator traceZDataAggregator(new SimpleSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
   std::vector<SpanData> runningSpans = 
   traceZDataAggregator.getRunningSpansWithGivenName("Non existing span name");
   ASSERT_TRUE(runningSpans.empty());
 }
 
-
+TEST(TraceZDataAggregator, getSpanCountForLatencyBoundaryReturnsEmptyMap)
+{
+  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::unordered_map<std::string, int> latencyCountPerName = 
+  traceZDataAggregator.getSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
+  ASSERT_TRUE(latencyCountPerName.empty());
+}

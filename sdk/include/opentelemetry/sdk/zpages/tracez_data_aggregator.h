@@ -7,8 +7,9 @@
 #include <vector>
 
 //include files
-#include "opentelemetry/sdk/trace/processor.h"
 #include "opentelemetry/sdk/trace/span_data.h"
+#include "opentelemetry/sdk/zpages/tracez_processor.h"
+#include "opentelemetry/sdk/zpages/latency_boundaries.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace sdk
@@ -19,7 +20,7 @@ namespace zpages
 class TraceZDataAggregator
 {
 public:
-  TraceZDataAggregator(opentelemetry::sdk::trace::SpanProcessor* traceZSpanProcessor);
+  TraceZDataAggregator(TracezSpanProcessor* spanProcessor);
   
   std::unordered_set<std::string> getSpanNames();
   
@@ -28,9 +29,11 @@ public:
   std::unordered_map<std::string, int> getCountOfRunningSpans();
   
   std::vector<opentelemetry::sdk::trace::SpanData> getRunningSpansWithGivenName(std::string spanName);
-
+  
+  std::unordered_map<std::string, int> getSpanCountForLatencyBoundary(LatencyBoundary latencyBoundary);
+  
 private:
-  opentelemetry::sdk::trace::SpanProcessor* spanProcessor;
+  TracezSpanProcessor* traceZSpanProcessor;
 
 };
 
