@@ -10,6 +10,7 @@
 #include "opentelemetry/sdk/trace/span_data.h"
 #include "opentelemetry/sdk/zpages/latency_boundaries.h"
 #include "opentelemetry/sdk/zpages/tracez_processor.h"
+#include "opentelemetry/nostd/string_view.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace sdk
@@ -22,7 +23,7 @@ class TraceZDataAggregator
 public:
   TraceZDataAggregator(TracezSpanProcessor *spanProcessor);
 
-  std::unordered_set<std::string> getSpanNames();
+  std::vector<opentelemetry::nostd::string_view> getSpanNames();
 
   /**This function returns the number of spans with a given name that are currently running,
   the map maps the name of a span to the number of spans with that name that are running**/

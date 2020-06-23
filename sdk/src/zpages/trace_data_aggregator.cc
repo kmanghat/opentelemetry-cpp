@@ -1,5 +1,6 @@
 #include "opentelemetry/sdk/zpages/tracez_data_aggregator.h"
-
+#include<iostream>
+#include <set>
 OPENTELEMETRY_BEGIN_NAMESPACE
 
 namespace sdk
@@ -12,9 +13,14 @@ TraceZDataAggregator::TraceZDataAggregator(TracezSpanProcessor *spanProcessor)
   traceZSpanProcessor = spanProcessor;
 }
 
-std::unordered_set<std::string> TraceZDataAggregator::getSpanNames()
+std::vector<opentelemetry::nostd::string_view> TraceZDataAggregator::getSpanNames()
 {
-  std::unordered_set<std::string> spanNames;
+  std::vector<opentelemetry::nostd::string_view> spanNames;
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> runningSpans = traceZSpanProcessor->GetRunningSpans();
+  std::unordered_set<opentelemetry::sdk::trace::SpanData*> completedSpans = traceZSpanProcessor->GetCompletedSpans();
+  
+  for(auto span: runningSpans)spanNames.push_back(span->GetName());
+  for(auto span: completedSpans)spanNames.push_back(span->GetName());
   return spanNames;
 }
 

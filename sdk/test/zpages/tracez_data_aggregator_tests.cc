@@ -15,7 +15,7 @@ using namespace opentelemetry::sdk::zpages;
 TEST(TraceZDataAggregator, getSpanNamesReturnsEmptySet)
 {
   TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
-  std::unordered_set<std::string> spanNames = traceZDataAggregator.getSpanNames();
+  std::vector<opentelemetry::nostd::string_view> spanNames = traceZDataAggregator.getSpanNames();
   ASSERT_TRUE(spanNames.size() == 0);
 }
 
