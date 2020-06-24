@@ -21,6 +21,7 @@ enum Latency_Boundary_Names
   MILLIx1_MILLIx10,
   MILLIx10_MILLIx100,
   MILLIx100_SECONDx1,
+  SECONDx1_SECONDx10,
   SECONDx10_SECONDx100,
   SECONDx100_MAX
 };
@@ -46,9 +47,9 @@ private:
 const std::vector<LatencyBoundary> Latency_Boundaries = {
     LatencyBoundary(0, 1e4),    LatencyBoundary(1e4, 1e5),      LatencyBoundary(1e5, 1e6),
     LatencyBoundary(1e6, 1e7),  LatencyBoundary(1e7, 1e8),      LatencyBoundary(1e8, 1e9),
-    LatencyBoundary(1e9, 1e10), LatencyBoundary(1e10, LONG_MAX)};
+    LatencyBoundary(1e9, 1e10), LatencyBoundary(1e10, 11), LatencyBoundary(1e11, LONG_MAX)};
 
-const int Latency_Boundaries_Size = 8;
+const int Latency_Boundaries_Size = 9;
 
 }  // namespace zpages
 }  // namespace sdk

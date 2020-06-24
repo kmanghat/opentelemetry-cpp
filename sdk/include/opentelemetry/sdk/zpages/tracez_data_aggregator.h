@@ -23,7 +23,7 @@ class TraceZDataAggregator
 public:
   TraceZDataAggregator(TracezSpanProcessor *spanProcessor);
 
-  std::vector<opentelemetry::nostd::string_view> getSpanNames();
+  std::unordered_set<std::string> getSpanNames();
 
   /**This function returns the number of spans with a given name that are currently running,
   the map maps the name of a span to the number of spans with that name that are running**/
