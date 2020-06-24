@@ -23,18 +23,26 @@ class TraceZDataAggregator
 public:
   TraceZDataAggregator(TracezSpanProcessor *spanProcessor);
 
+  /**This function returns the names of all running and completed spans
+  **/
   std::unordered_set<std::string> getSpanNames();
 
   /**This function returns the number of spans with a given name that are currently running,
   the map maps the name of a span to the number of spans with that name that are running**/
   std::unordered_map<std::string, int> getCountOfRunningSpans();
 
+  /** This function gets the span data for all running spans with a user specified name
+  **/
   std::vector<opentelemetry::sdk::trace::SpanData> getRunningSpansWithGivenName(
       std::string spanName);
 
+  /** This function gets the number of spans(for each name) that fall within the latency boundary
+  **/
   std::unordered_map<std::string, int> getSpanCountForLatencyBoundary(
       LatencyBoundary latencyBoundary);
 
+  /** This function maps a span name to a vector which keeps track of counts of spans for each
+  latency bucket**/
   std::unordered_map<std::string, std::vector<int>> getSpanCountPerLatencyBoundary();
 
 private:
