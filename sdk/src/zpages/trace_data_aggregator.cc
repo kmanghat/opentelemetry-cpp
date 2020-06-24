@@ -1,7 +1,6 @@
 #include "opentelemetry/sdk/zpages/tracez_data_aggregator.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-
 namespace sdk
 {
 namespace zpages

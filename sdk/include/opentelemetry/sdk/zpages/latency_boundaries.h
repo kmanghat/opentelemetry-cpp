@@ -13,6 +13,10 @@ namespace sdk
 namespace zpages
 {
 
+/**
+This enum is used to index into the Latency_Boundaries vector that is declared later on,
+using this enum lets you access the Latecy_Boundary at each index without using magic numbers
+**/
 enum Latency_Boundary_Names
 {
   ZERO_MICROSx10,
@@ -26,6 +30,9 @@ enum Latency_Boundary_Names
   SECONDx100_MAX
 };
 
+/**
+LatencyBoundary class is used to define a single latency boundary with a upper and lower bound
+**/
 class LatencyBoundary
 {
 public:
@@ -44,6 +51,9 @@ private:
   long int latencyUpperBound;
 };
 
+/**
+This constannt contains the 9 latency boundaries and enables them to be interated over
+**/
 const std::vector<LatencyBoundary> Latency_Boundaries = {
     LatencyBoundary(0, 1e4),    LatencyBoundary(1e4, 1e5),      LatencyBoundary(1e5, 1e6),
     LatencyBoundary(1e6, 1e7),  LatencyBoundary(1e7, 1e8),      LatencyBoundary(1e8, 1e9),
