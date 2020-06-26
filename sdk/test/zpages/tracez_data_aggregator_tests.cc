@@ -14,21 +14,24 @@ using namespace opentelemetry::sdk::zpages;
 
 TEST(TraceZDataAggregator, getSpanNamesReturnsEmptySet)
 {
-  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(processor);
   std::unordered_set<std::string> spanNames = traceZDataAggregator.getSpanNames();
   ASSERT_TRUE(spanNames.size() == 0);
 }
 
 TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
 {
-  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(processor);
   std::unordered_map<std::string, int> spanCount = traceZDataAggregator.getCountOfRunningSpans();
   ASSERT_TRUE(spanCount.empty());
 }
 
 TEST(TraceZDataAggregator, getRunningSpansWithGivenNameReturnsEmptyVector)
 {
-  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(processor);
   std::vector<Recordable> runningSpans =
       traceZDataAggregator.getRunningSpansWithGivenName("Non existing span name");
   ASSERT_TRUE(runningSpans.empty());
@@ -36,7 +39,8 @@ TEST(TraceZDataAggregator, getRunningSpansWithGivenNameReturnsEmptyVector)
 
 TEST(TraceZDataAggregator, getSpanCountForLatencyBoundaryReturnsEmptyMap)
 {
-  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(processor);
   std::unordered_map<std::string, int> latencyCountPerName =
       traceZDataAggregator.getSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
   ASSERT_TRUE(latencyCountPerName.empty());
@@ -44,7 +48,8 @@ TEST(TraceZDataAggregator, getSpanCountForLatencyBoundaryReturnsEmptyMap)
 
 TEST(TraceZDataAggregator, getSpanCountPerLatencyBoundaryReturnEmptyMap)
 {
-  TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(nullptr));
+  TraceZDataAggregator traceZDataAggregator(processor);
   std::unordered_map<std::string, std::vector<int>> latencyCountPerName =
       traceZDataAggregator.getSpanCountPerLatencyBoundary();
   ASSERT_TRUE(latencyCountPerName.empty());

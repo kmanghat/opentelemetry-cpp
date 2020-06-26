@@ -22,7 +22,7 @@ namespace zpages
 class TraceZDataAggregator
 {
 public:
-  TraceZDataAggregator(TracezSpanProcessor *spanProcessor);
+  TraceZDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor);
 
   /**This function returns the names of all running and completed spans
   **/
@@ -47,7 +47,7 @@ public:
   std::unordered_map<std::string, std::vector<int>> getSpanCountPerLatencyBoundary();
 
 private:
-  TracezSpanProcessor *traceZSpanProcessor;
+  std::shared_ptr<TracezSpanProcessor> traceZSpanProcessor;
 };
 
 }  // namespace zpages

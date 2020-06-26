@@ -6,7 +6,7 @@ namespace sdk
 namespace zpages
 {
 
-TraceZDataAggregator::TraceZDataAggregator(TracezSpanProcessor *spanProcessor)
+TraceZDataAggregator::TraceZDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor)
 {
   traceZSpanProcessor = spanProcessor;
 }
