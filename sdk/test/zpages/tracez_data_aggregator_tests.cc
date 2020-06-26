@@ -83,12 +83,49 @@ TEST(TraceZDataAggregator, getSpanNamesReturnsASingleSpan)
   
   std::unordered_set<std::string> spanNames = traceZDataAggregator->getSpanNames();
   ASSERT_EQ(spanNames.size(),1);
+  ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
   
   span_first -> End();
   
   spanNames = traceZDataAggregator->getSpanNames();
   ASSERT_EQ(spanNames.size(),1);
+  ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
 }
+
+
+TEST(TraceZDataAggregator, getSpanNamesReturnsTwoSpans)
+{
+  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
+      new std::vector<std::unique_ptr<SpanData>>);
+      
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+  auto tracer = std::shared_ptr<Tracer>(new Tracer(processor));
+  auto traceZDataAggregator (new TraceZDataAggregator(processor));
+  
+  auto span_first  = tracer->StartSpan("span 1");
+  auto span_second = tracer->StartSpan("span 2");
+  
+  std::unordered_set<std::string> spanNames = traceZDataAggregator->getSpanNames();
+  ASSERT_EQ(spanNames.size(),2);
+  ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
+  ASSERT_TRUE(spanNames.find("span 2") != spanNames.end());
+  
+  span_first -> End();
+  
+  spanNames = traceZDataAggregator->getSpanNames();
+  ASSERT_EQ(spanNames.size(),2);
+  ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
+  ASSERT_TRUE(spanNames.find("span 2") != spanNames.end());
+  
+  span_second -> End();
+  
+  spanNames = traceZDataAggregator->getSpanNames();
+  ASSERT_EQ(spanNames.size(),2);
+  ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
+  ASSERT_TRUE(spanNames.find("span 2") != spanNames.end());
+}
+
 
 TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
 {
