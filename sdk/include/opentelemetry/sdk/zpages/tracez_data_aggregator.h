@@ -34,7 +34,7 @@ public:
 
   /** This function gets the span data for all running spans with a user specified name
   **/
-  std::vector<opentelemetry::sdk::trace::SpanData> getRunningSpansWithGivenName(
+  std::vector<opentelemetry::sdk::trace::Recordable> getRunningSpansWithGivenName(
       std::string spanName);
 
   /** This function gets the number of spans(for each name) that fall within the latency boundary

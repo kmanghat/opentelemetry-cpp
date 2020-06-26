@@ -29,7 +29,7 @@ TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
 TEST(TraceZDataAggregator, getRunningSpansWithGivenNameReturnsEmptyVector)
 {
   TraceZDataAggregator traceZDataAggregator(new TracezSpanProcessor(nullptr));
-  std::vector<SpanData> runningSpans =
+  std::vector<Recordable> runningSpans =
       traceZDataAggregator.getRunningSpansWithGivenName("Non existing span name");
   ASSERT_TRUE(runningSpans.empty());
 } 

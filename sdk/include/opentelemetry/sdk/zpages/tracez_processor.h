@@ -44,19 +44,17 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * OnStart is called when a span is started.
    * @param span a recordable for a span that was just started
    */
-  void OnStart(opentelemetry::sdk::trace::SpanData &span) noexcept;
-  void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {}
-
+  void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override;
+  
   /**
    * OnEnd is called when a span is ended.
    * @param span a recordable for a span that was ended
    */
-  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &&span) noexcept;
-  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override {} 
+  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override;
 
-  std::unordered_set<opentelemetry::sdk::trace::SpanData*> GetRunningSpans() noexcept;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> GetRunningSpans() noexcept;
 
-  std::unordered_set<opentelemetry::sdk::trace::SpanData*> GetCompletedSpans() noexcept;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> GetCompletedSpans() noexcept;
 
   /**
    * Export all ended spans that have not yet been exported.
@@ -83,8 +81,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
   bool IsSampled;
-  std::unordered_set<opentelemetry::sdk::trace::SpanData*> RunningSpans;
-  std::unordered_set<opentelemetry::sdk::trace::SpanData*> CompletedSpans;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> RunningSpans;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> CompletedSpans;
 };
 }  // namespace zpages
 }  // namespace sdk
