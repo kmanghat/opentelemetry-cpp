@@ -1,7 +1,7 @@
-#include "opentelemetry/sdk/zpages/tracez_processor.h"
+#include "opentelemetry/ext/zpages/tracez_processor.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-namespace sdk {
+namespace ext {
 namespace zpages {
 
   void TracezSpanProcessor::OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept {

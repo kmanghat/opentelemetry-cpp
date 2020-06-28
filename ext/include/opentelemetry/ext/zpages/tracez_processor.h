@@ -12,7 +12,7 @@
 #include "opentelemetry/sdk/trace/recordable.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-namespace sdk
+namespace ext
 {
 namespace zpages
 {

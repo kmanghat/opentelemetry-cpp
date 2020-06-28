@@ -7,14 +7,14 @@
 #include <vector>
 
 // include files
+#include "opentelemetry/ext/zpages/tracez_processor.h"
 #include "opentelemetry/sdk/trace/span_data.h"
-#include "opentelemetry/sdk/zpages/latency_boundaries.h"
-#include "opentelemetry/sdk/zpages/tracez_processor.h"
+#include "opentelemetry/ext/zpages/latency_boundaries.h"
 #include "opentelemetry/nostd/string_view.h"
 
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-namespace sdk
+namespace ext
 {
 namespace zpages
 {

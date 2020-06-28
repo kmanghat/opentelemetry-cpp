@@ -8,7 +8,7 @@
 #include <vector>
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-namespace sdk
+namespace ext
 {
 namespace zpages
 {

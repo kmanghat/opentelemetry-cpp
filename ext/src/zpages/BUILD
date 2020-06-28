@@ -18,9 +18,10 @@ cc_library(
     name = "zpages",
     srcs = glob(["**/*.cc"]),
     hdrs = glob(["**/*.h"]),
-    include_prefix = "src/zpages",
+    include_prefix = "ext/zpages",
     deps = [
         "//api",
         "//sdk:headers",
+        "//ext:headers",
     ],
 )
