@@ -46,9 +46,21 @@ std::unordered_map<std::string, int> TraceZDataAggregator::GetSpanCountForLatenc
   return latencyCountPerName;
 }
 
-std::unordered_map<std::string, std::vector<int>> TraceZDataAggregator::GetSpanCountPerLatencyBoundary()
+Latency_Boundary_Name TraceZDataAggregator::GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable)
 {
-  std::unordered_map<std::string, std::vector<int>> latencyHistogramPerName;
+  for(int boundary = 0; boundary < NUMBER_OF_LATENCY_BOUNDARIES; boundary++)
+  {
+    if(recordable->GetDuration().count() >= Latency_Boundaries[boundary].GetLatencyLowerBound() 
+    && recordable->GetDuration().count() <= Latency_Boundaries[boundary].GetLatencyUpperBound())return (Latency_Boundary_Name)boundary;
+  }
+  return Latency_Boundary_Name::SECONDx100_MAX;
+}
+
+std::unordered_map<std::string, std::vector<int>[NUMBER_OF_LATENCY_BOUNDARIES]> TraceZDataAggregator::GetSpanCountPerLatencyBoundary()
+{
+  std::unordered_map<std::string, std::vector<int>[NUMBER_OF_LATENCY_BOUNDARIES]> latencyHistogramPerName;
+  //Get completed spans
+  //For each completed span find it's latency bucket and increment count
   return latencyHistogramPerName;
 }
 

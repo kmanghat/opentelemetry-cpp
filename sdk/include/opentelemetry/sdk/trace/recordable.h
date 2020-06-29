@@ -48,8 +48,9 @@ public:
   virtual void SetStatus(trace_api::CanonicalCode code,
                          nostd::string_view description) noexcept = 0;
                          
-  virtual opentelemetry::nostd::string_view GetName() const noexcept = 0;
-
+  virtual nostd::string_view GetName() const noexcept = 0;
+  virtual std::chrono::nanoseconds GetDuration() const noexcept = 0;
+  
   /**
    * Set the name of the span.
    * @param name the name to set

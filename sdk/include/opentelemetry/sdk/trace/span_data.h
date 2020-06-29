@@ -36,13 +36,14 @@ public:
    * @return the span id for this span's parent
    */
   opentelemetry::trace::SpanId GetParentSpanId() const noexcept { return parent_span_id_; }
-
+ 
   /**
    * Get the name for this span
    * @return the name for this span
    */
   opentelemetry::nostd::string_view GetName() const noexcept { return name_; }
 
+  
   /**
    * Get the status for this span
    * @return the status for this span
