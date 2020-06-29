@@ -1,4 +1,3 @@
- 
 # Copyright 2020, OpenTelemetry Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,9 +18,10 @@ cc_library(
     name = "zpages",
     srcs = glob(["**/*.cc"]),
     hdrs = glob(["**/*.h"]),
-    include_prefix = "src/zpages",
+    include_prefix = "ext/zpages",
     deps = [
         "//api",
         "//sdk:headers",
+        "//ext:headers",
     ],
 )

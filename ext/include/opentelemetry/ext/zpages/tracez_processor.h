@@ -9,12 +9,15 @@
 #include "opentelemetry/sdk/trace/span_data.h"
 #include "opentelemetry/sdk/trace/exporter.h"
 #include "opentelemetry/sdk/trace/processor.h"
+#include "opentelemetry/sdk/trace/recordable.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
-namespace sdk {
-namespace zpages {
+namespace ext
+{
+namespace zpages
+{
 /**
- * The simple span processor passes finished recordables to 
+ * The simple span processor passes finished recordables to
  * Data Aggregator as soon as they are finished for TraceZ.
  *
  */
@@ -36,7 +39,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * associated exporter.
    * @return a newly initialized recordable
    */
-  std::unique_ptr<opentelemetry::sdk::trace::Recordable> MakeRecordable() noexcept override {
+  std::unique_ptr<opentelemetry::sdk::trace::Recordable> MakeRecordable() noexcept override
+  {
     return exporter_->MakeRecordable();
   }
 
@@ -44,14 +48,20 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * OnStart is called when a span is started.
    * @param span a recordable for a span that was just started
    */
+<<<<<<< HEAD:sdk/include/opentelemetry/sdk/zpages/tracez_processor.h
   void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {
     RunningSpans.insert(&span);
   } 
     
+=======
+  void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override;
+  
+>>>>>>> zpages-tracez:ext/include/opentelemetry/ext/zpages/tracez_processor.h
   /**
    * OnEnd is called when a span is ended.
    * @param span a recordable for a span that was ended
    */
+<<<<<<< HEAD:sdk/include/opentelemetry/sdk/zpages/tracez_processor.h
   void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override {
           
      if (!IsSampled) return;
@@ -65,6 +75,13 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> GetRunningSpans() noexcept;
 
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> GetCompletedSpans() noexcept;
+=======
+  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override;
+
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetRunningSpans() noexcept;
+
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetCompletedSpans() noexcept;
+>>>>>>> zpages-tracez:ext/include/opentelemetry/ext/zpages/tracez_processor.h
 
   /**
    * Export all ended spans that have not yet been exported.
@@ -72,8 +89,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * timeout is applied.
    */
   void ForceFlush(
-      std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override {
-  }
+      std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
+  {}
 
   /**
    * Shut down the processor and do any cleanup required. Ended spans are
@@ -83,15 +100,21 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * @param timeout an optional timeout, the default timeout of 0 means that no
    * timeout is applied.
    */
-  void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override {
+  void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
+  {
     exporter_->Shutdown(timeout);
   }
 
  private:
   bool IsSampled;
+<<<<<<< HEAD:sdk/include/opentelemetry/sdk/zpages/tracez_processor.h
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> RunningSpans;
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> CompletedSpans;
+=======
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> running_spans;
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> completed_spans;
+>>>>>>> zpages-tracez:ext/include/opentelemetry/ext/zpages/tracez_processor.h
 };
 }  // namespace zpages
 }  // namespace sdk

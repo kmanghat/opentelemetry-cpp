@@ -5,7 +5,7 @@ cc_test(
     ],
     deps = [
         "//sdk/src/trace",
-        "//sdk/src/zpages",
+        "//ext/src/zpages",
         "@com_google_googletest//:gtest_main",
     ],
 )
