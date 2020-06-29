@@ -58,17 +58,17 @@ std::shared_ptr<TraceZDataAggregator> initTraceZDataAggregator(
 }  // namespace
 
 
-TEST(TraceZDataAggregator, getSpanNamesReturnsEmptySet)
+TEST(TraceZDataAggregator, GetSpanNamesReturnsEmptySet)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
   
   auto traceZDataAggregator = initTraceZDataAggregator(spans_received);
-  std::unordered_set<std::string> spanNames = traceZDataAggregator->getSpanNames();
+  std::unordered_set<std::string> spanNames = traceZDataAggregator->GetSpanNames();
   ASSERT_EQ(spanNames.size(),0);
 }
 
-TEST(TraceZDataAggregator, getSpanNamesReturnsASingleSpan)
+TEST(TraceZDataAggregator, GetSpanNamesReturnsASingleSpan)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
@@ -80,19 +80,19 @@ TEST(TraceZDataAggregator, getSpanNamesReturnsASingleSpan)
   
   auto span_first  = tracer->StartSpan("span 1");
   
-  std::unordered_set<std::string> spanNames = traceZDataAggregator->getSpanNames();
+  std::unordered_set<std::string> spanNames = traceZDataAggregator->GetSpanNames();
   ASSERT_EQ(spanNames.size(),1);
   ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
   
   span_first -> End();
   
-  spanNames = traceZDataAggregator->getSpanNames();
+  spanNames = traceZDataAggregator->GetSpanNames();
   ASSERT_EQ(spanNames.size(),1);
   ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
 }
 
 
-TEST(TraceZDataAggregator, getSpanNamesReturnsTwoSpans)
+TEST(TraceZDataAggregator, GetSpanNamesReturnsTwoSpans)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
@@ -105,66 +105,66 @@ TEST(TraceZDataAggregator, getSpanNamesReturnsTwoSpans)
   auto span_first  = tracer->StartSpan("span 1");
   auto span_second = tracer->StartSpan("span 2");
   
-  std::unordered_set<std::string> spanNames = traceZDataAggregator->getSpanNames();
+  std::unordered_set<std::string> spanNames = traceZDataAggregator->GetSpanNames();
   ASSERT_EQ(spanNames.size(),2);
   ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
   ASSERT_TRUE(spanNames.find("span 2") != spanNames.end());
   
   span_first -> End();
   
-  spanNames = traceZDataAggregator->getSpanNames();
+  spanNames = traceZDataAggregator->GetSpanNames();
   ASSERT_EQ(spanNames.size(),2);
   ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
   ASSERT_TRUE(spanNames.find("span 2") != spanNames.end());
   
   span_second -> End();
   
-  spanNames = traceZDataAggregator->getSpanNames();
+  spanNames = traceZDataAggregator->GetSpanNames();
   ASSERT_EQ(spanNames.size(),2);
   ASSERT_TRUE(spanNames.find("span 1") != spanNames.end());
   ASSERT_TRUE(spanNames.find("span 2") != spanNames.end());
 }
 
 
-TEST(TraceZDataAggregator, getCountOfRunningSpansReturnsEmptyMap)
+TEST(TraceZDataAggregator, GetCountOfRunningSpansReturnsEmptyMap)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
   
   auto traceZDataAggregator = initTraceZDataAggregator(spans_received);
-  std::unordered_map<std::string, int> spanCount = traceZDataAggregator->getCountOfRunningSpans();
+  std::unordered_map<std::string, int> spanCount = traceZDataAggregator->GetCountOfRunningSpans();
   ASSERT_TRUE(spanCount.empty());
 }
 
-TEST(TraceZDataAggregator, getRunningSpansWithGivenNameReturnsEmptyVector)
+TEST(TraceZDataAggregator, GetRunningSpansWithGivenNameReturnsEmptyVector)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
   
   auto traceZDataAggregator = initTraceZDataAggregator(spans_received);
   std::vector<Recordable> runningSpans =
-      traceZDataAggregator->getRunningSpansWithGivenName("Non existing span name");
+      traceZDataAggregator->GetRunningSpansWithGivenName("Non existing span name");
   ASSERT_TRUE(runningSpans.empty());
 } 
 
-TEST(TraceZDataAggregator, getSpanCountForLatencyBoundaryReturnsEmptyMap)
+TEST(TraceZDataAggregator, GetSpanCountForLatencyBoundaryReturnsEmptyMap)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
   
   auto traceZDataAggregator = initTraceZDataAggregator(spans_received);
   std::unordered_map<std::string, int> latencyCountPerName =
-      traceZDataAggregator->getSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
+      traceZDataAggregator->GetSpanCountForLatencyBoundary(Latency_Boundaries[ZERO_MICROSx10]);
   ASSERT_TRUE(latencyCountPerName.empty());
 }
 
-TEST(TraceZDataAggregator, getSpanCountPerLatencyBoundaryReturnEmptyMap)
+TEST(TraceZDataAggregator, GetSpanCountPerLatencyBoundaryReturnEmptyMap)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
       new std::vector<std::unique_ptr<SpanData>>);
   
   auto traceZDataAggregator = initTraceZDataAggregator(spans_received);
   std::unordered_map<std::string, std::vector<int>> latencyCountPerName =
-      traceZDataAggregator->getSpanCountPerLatencyBoundary();
+      traceZDataAggregator->GetSpanCountPerLatencyBoundary();
   ASSERT_TRUE(latencyCountPerName.empty());
 }

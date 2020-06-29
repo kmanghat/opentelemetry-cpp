@@ -42,9 +42,9 @@ public:
     latencyUpperBound = upperBound;
   }
 
-  long int getLatencyLowerBound() const { return latencyLowerBound; }
+  long int GetLatencyLowerBound() const { return latencyLowerBound; }
 
-  long int getLatencyUpperBound() const { return latencyUpperBound; }
+  long int GetLatencyUpperBound() const { return latencyUpperBound; }
 
 private:
   long int latencyLowerBound;
