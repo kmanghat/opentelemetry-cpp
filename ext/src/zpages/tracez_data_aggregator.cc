@@ -46,12 +46,14 @@ std::unordered_map<std::string, int> TraceZDataAggregator::GetSpanCountForLatenc
   return latencyCountPerName;
 }
 
+
 Latency_Boundary_Name TraceZDataAggregator::GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable)
 {
   for(int boundary = 0; boundary < NUMBER_OF_LATENCY_BOUNDARIES; boundary++)
   {
-    if(recordable->GetDuration().count() >= Latency_Boundaries[boundary].GetLatencyLowerBound() 
-    && recordable->GetDuration().count() <= Latency_Boundaries[boundary].GetLatencyUpperBound())return (Latency_Boundary_Name)boundary;
+    
+    if(recordable->GetDuration() >= Latency_Boundaries[boundary].GetLatencyLowerBound() 
+    && recordable->GetDuration() <= Latency_Boundaries[boundary].GetLatencyUpperBound())return (Latency_Boundary_Name)boundary;
   }
   return Latency_Boundary_Name::SECONDx100_MAX;
 }

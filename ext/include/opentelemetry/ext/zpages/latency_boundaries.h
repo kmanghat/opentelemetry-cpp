@@ -36,28 +36,35 @@ LatencyBoundary class is used to define a single latency boundary with a upper a
 class LatencyBoundary
 {
 public:
-  LatencyBoundary(long int lowerBound, long int upperBound)
+  LatencyBoundary(std::chrono::nanoseconds lowerBound, std::chrono::nanoseconds upperBound)
   {
     latencyLowerBound = lowerBound;
     latencyUpperBound = upperBound;
   }
 
-  long int GetLatencyLowerBound() const { return latencyLowerBound; }
+  std::chrono::nanoseconds GetLatencyLowerBound() const { return latencyLowerBound; }
 
-  long int GetLatencyUpperBound() const { return latencyUpperBound; }
+  std::chrono::nanoseconds GetLatencyUpperBound() const { return latencyUpperBound; }
 
 private:
-  long int latencyLowerBound;
-  long int latencyUpperBound;
+  std::chrono::nanoseconds latencyLowerBound;
+  std::chrono::nanoseconds latencyUpperBound;
 };
 
 /**
 This constannt contains the 9 latency boundaries and enables them to be interated over
 **/
 const std::vector<LatencyBoundary> Latency_Boundaries = {
-    LatencyBoundary(0, 1e4),    LatencyBoundary(1e4, 1e5),      LatencyBoundary(1e5, 1e6),
-    LatencyBoundary(1e6, 1e7),  LatencyBoundary(1e7, 1e8),      LatencyBoundary(1e8, 1e9),
-    LatencyBoundary(1e9, 1e10), LatencyBoundary(1e10, 11), LatencyBoundary(1e11, LONG_MAX)};
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(0)), std::chrono::nanoseconds(std::chrono::microseconds(10))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(10)), std::chrono::nanoseconds(std::chrono::microseconds(100))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(100)), std::chrono::nanoseconds(std::chrono::milliseconds(1))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::milliseconds(1)), std::chrono::nanoseconds(std::chrono::milliseconds(10))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::milliseconds(10)), std::chrono::nanoseconds(std::chrono::milliseconds(100))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::milliseconds(100)), std::chrono::nanoseconds(std::chrono::seconds(1))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(1)), std::chrono::nanoseconds(std::chrono::seconds(10))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(10)), std::chrono::nanoseconds(std::chrono::seconds(100))),
+    LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(100)), std::chrono::nanoseconds(std::chrono::system_clock::duration::max())),
+  };
 
 const int NUMBER_OF_LATENCY_BOUNDARIES = 9;
 
