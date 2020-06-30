@@ -60,7 +60,7 @@ private:
 };
 
 /**
-Latency_Boundaries constannt contains the 9 latency boundaries and enables them to be interated over
+Latency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
 **/
 const std::vector<LatencyBoundary> Latency_Boundaries = {
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(0)), std::chrono::nanoseconds(std::chrono::microseconds(10))),
@@ -73,6 +73,7 @@ const std::vector<LatencyBoundary> Latency_Boundaries = {
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(10)), std::chrono::nanoseconds(std::chrono::seconds(100))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(100)), std::chrono::nanoseconds(std::chrono::system_clock::duration::max())),
   };
+
 
 const int NUMBER_OF_LATENCY_BOUNDARIES = 9;
 
