@@ -24,15 +24,11 @@ namespace zpages
 class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
  public:
   /**
-   * Initialize a Tracez span processor.
+   * Initialize a simple span processor.
    * @param exporter the exporter used by the span processor
    */
   explicit TracezSpanProcessor(std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> &&exporter) noexcept
-      : exporter_(std::move(exporter)) {
-    isSampled(true);
-    RunningSpans({});
-    CompletedSpans({});
-  }
+      : exporter_(std::move(exporter)) {}
 
   /**
    * Create a span recordable. This requests a new span recordable from the
@@ -48,40 +44,17 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    * OnStart is called when a span is started.
    * @param span a recordable for a span that was just started
    */
-<<<<<<< HEAD:sdk/include/opentelemetry/sdk/zpages/tracez_processor.h
-  void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override {
-    RunningSpans.insert(&span);
-  } 
-    
-=======
   void OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept override;
   
->>>>>>> zpages-tracez:ext/include/opentelemetry/ext/zpages/tracez_processor.h
   /**
    * OnEnd is called when a span is ended.
    * @param span a recordable for a span that was ended
    */
-<<<<<<< HEAD:sdk/include/opentelemetry/sdk/zpages/tracez_processor.h
-  void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override {
-          
-     if (!IsSampled) return;
-     auto completedSpan = RunningSpans.find(span.get());
-     if (completedSpan != RunningSpans.end()) {
-       CompletedSpans.insert(*completedSpan); 
-       RunningSpans.erase(completedSpan);
-     } 
-  } 
-
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> GetRunningSpans() noexcept;
-
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> GetCompletedSpans() noexcept;
-=======
   void OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept override;
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetRunningSpans() noexcept;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*>& GetRunningSpans() noexcept;
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetCompletedSpans() noexcept;
->>>>>>> zpages-tracez:ext/include/opentelemetry/ext/zpages/tracez_processor.h
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& GetCompletedSpans() noexcept;
 
   /**
    * Export all ended spans that have not yet been exported.
@@ -106,15 +79,10 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
   }
 
  private:
-  bool IsSampled;
-<<<<<<< HEAD:sdk/include/opentelemetry/sdk/zpages/tracez_processor.h
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
+  bool IsSampled;
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> RunningSpans;
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> CompletedSpans;
-=======
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> running_spans;
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> completed_spans;
->>>>>>> zpages-tracez:ext/include/opentelemetry/ext/zpages/tracez_processor.h
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> CompletedSpans;
 };
 }  // namespace zpages
 }  // namespace sdk
