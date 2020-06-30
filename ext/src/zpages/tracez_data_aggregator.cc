@@ -51,9 +51,7 @@ Latency_Boundary_Name TraceZDataAggregator::GetLatencyBoundary(std::shared_ptr<o
 {
   for(int boundary = 0; boundary < NUMBER_OF_LATENCY_BOUNDARIES; boundary++)
   {
-    
-    if(recordable->GetDuration() >= Latency_Boundaries[boundary].GetLatencyLowerBound() 
-    && recordable->GetDuration() <= Latency_Boundaries[boundary].GetLatencyUpperBound())return (Latency_Boundary_Name)boundary;
+    if(Latency_Boundaries[boundary].IsDurationInBucket(recordable->GetDuration()))return (Latency_Boundary_Name)boundary;
   }
   return Latency_Boundary_Name::SECONDx100_MAX;
 }

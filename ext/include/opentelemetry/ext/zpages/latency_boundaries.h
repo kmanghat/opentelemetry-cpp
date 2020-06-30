@@ -53,6 +53,11 @@ public:
    * @return the lower upper bound of time duration
    */
   std::chrono::nanoseconds GetLatencyUpperBound() const { return latencyUpperBound; }
+  
+  bool IsDurationInBucket(std::chrono::nanoseconds duration) const
+  {
+    return (duration >= latencyLowerBound && duration < latencyUpperBound);
+  }
 
 private:
   std::chrono::nanoseconds latencyLowerBound;
