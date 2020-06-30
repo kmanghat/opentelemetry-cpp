@@ -5,24 +5,24 @@ namespace ext {
 namespace zpages {
 
   void TracezSpanProcessor::OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept {
-    running_spans.insert(std::unique_ptr<opentelemetry::sdk::trace::Recordable>(&span));
+    RunningSpans.insert(&span);
   }
 
   void TracezSpanProcessor::OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept {
      if (!IsSampled) return;
-     auto completed_span = running_spans.find(span.get());
-     if (completed_span != running_spans.end()) {
-       completed_spans.insert(*completed_span);
-       running_spans.erase(completed_span);
+     auto completedSpan = RunningSpans.find(span.get());
+     if (completedSpan != RunningSpans.end()) {
+       RunningSpans.erase(completedSpan);
+       CompletedSpans.emplace(std::move(span));
      }
   }
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetRunningSpans() noexcept {
-    return running_spans;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*>& TracezSpanProcessor::GetRunningSpans() noexcept {
+    return RunningSpans;
   }
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetCompletedSpans() noexcept {
-    return completed_spans;
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& TracezSpanProcessor::GetCompletedSpans() noexcept {
+    return CompletedSpans;
   }
 
 
