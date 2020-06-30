@@ -8,6 +8,8 @@
 
 using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
+namespace nostd  = opentelemetry::nostd;
+namespace common = opentelemetry::common;
 
 /**
  * A mock exporter that switches a flag once a valid recordable was received.
@@ -24,8 +26,7 @@ public:
     return std::unique_ptr<Recordable>(new SpanData);
   }
 
-  ExportResult Export(
-      const opentelemetry::nostd::span<std::unique_ptr<Recordable>> &recordables) noexcept override
+  ExportResult Export(const nostd::span<std::unique_ptr<Recordable>> &recordables) noexcept override
   {
     for (auto &recordable : recordables)
     {
@@ -53,7 +54,7 @@ std::shared_ptr<TraceZDataAggregator> initTraceZDataAggregator(
 {
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(received));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
-  auto tracer = std::shared_ptr<Tracer>(new Tracer(processor));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
   return std::shared_ptr<TraceZDataAggregator>(new TraceZDataAggregator(processor));
 }
 }  // namespace
@@ -76,7 +77,7 @@ TEST(TraceZDataAggregator, getSpanNamesReturnsASingleSpan)
       
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
-  auto tracer = std::shared_ptr<Tracer>(new Tracer(processor));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
   auto traceZDataAggregator (new TraceZDataAggregator(processor));
   
   auto span_first  = tracer->StartSpan("span 1");
@@ -101,7 +102,7 @@ TEST(TraceZDataAggregator, GetSpanNamesReturnsTwoSpans)
       
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
-  auto tracer = std::shared_ptr<Tracer>(new Tracer(processor));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
   auto traceZDataAggregator (new TraceZDataAggregator(processor));
   
   auto span_first  = tracer->StartSpan("span 1");
