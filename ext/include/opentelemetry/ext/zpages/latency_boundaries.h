@@ -17,18 +17,18 @@ namespace zpages
 Latency_Boundary_Name enum is used to index into the Latency_Boundaries vector that is declared later on,
 using this enum lets you access the Latecy_Boundary at each index without using magic numbers
 **/
-typedef enum Latency_Boundary_Name
+typedef enum LatencyBoundaryName
 {
-  ZERO_MICROSx10,
-  MICROSx10_MICROSx100,
-  MICROSx100_MILLIx1,
-  MILLIx1_MILLIx10,
-  MILLIx10_MILLIx100,
-  MILLIx100_SECONDx1,
-  SECONDx1_SECONDx10,
-  SECONDx10_SECONDx100,
-  SECONDx100_MAX
-} Latency_Boundary_Name;
+  k0MicroTo10Micro = 0,
+  k10MicroTo100Micro,
+  k100MicroTo1Milli,
+  k1MilliTo10Milli,
+  k10MilliTo100Milli,
+  k100MilliTo1Second,
+  k1SecondTo10Second,
+  k10SecondTo100Second,
+  k100SecondToMax
+} LatencyBoundaryName;
 
 /**
 LatencyBoundary class is used to define a single latency boundary with a upper and lower bound
@@ -36,38 +36,38 @@ LatencyBoundary class is used to define a single latency boundary with a upper a
 class LatencyBoundary
 {
 public:
-  LatencyBoundary(std::chrono::nanoseconds lowerBound, std::chrono::nanoseconds upperBound)
+  LatencyBoundary(std::chrono::nanoseconds lower_bound, std::chrono::nanoseconds upper_bound)
   {
-    latencyLowerBound = lowerBound;
-    latencyUpperBound = upperBound;
+    latency_lower_bound_ = lower_bound;
+    latency_upper_bound_ = upper_bound;
   }
 
   /**
    * GetLatencyLowerBound() function gets the lower bound of the this latency boundary
    * @return the lower bound of time duration
    */
-  std::chrono::nanoseconds GetLatencyLowerBound() const { return latencyLowerBound; }
+  std::chrono::nanoseconds GetLatencyLowerBound() const { return latency_lower_bound_; }
 
  /**
    * GetLatencyUpperBound() function gets the upper bound of the this latency boundary
    * @return the lower upper bound of time duration
    */
-  std::chrono::nanoseconds GetLatencyUpperBound() const { return latencyUpperBound; }
+  std::chrono::nanoseconds GetLatencyUpperBound() const { return latency_upper_bound_; }
   
   bool IsDurationInBucket(std::chrono::nanoseconds duration) const
   {
-    return (duration >= latencyLowerBound && duration < latencyUpperBound);
+    return (duration >= latency_lower_bound_ && duration < latency_upper_bound_);
   }
 
 private:
-  std::chrono::nanoseconds latencyLowerBound;
-  std::chrono::nanoseconds latencyUpperBound;
+  std::chrono::nanoseconds latency_lower_bound_;
+  std::chrono::nanoseconds latency_upper_bound_;
 };
 
 /**
 Latency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
 **/
-const std::vector<LatencyBoundary> Latency_Boundaries = {
+const std::vector<LatencyBoundary> kLatencyBoundaries = {
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(0)), std::chrono::nanoseconds(std::chrono::microseconds(10))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(10)), std::chrono::nanoseconds(std::chrono::microseconds(100))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(100)), std::chrono::nanoseconds(std::chrono::milliseconds(1))),
@@ -80,7 +80,7 @@ const std::vector<LatencyBoundary> Latency_Boundaries = {
   };
 
 
-const int NUMBER_OF_LATENCY_BOUNDARIES = 9;
+const int kNumberOfLatencyBoundaries = 9;
 
 }  // namespace zpages
 }  // namespace sdk

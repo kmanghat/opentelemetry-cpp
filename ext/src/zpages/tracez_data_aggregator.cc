@@ -6,62 +6,59 @@ namespace ext
 namespace zpages
 {
 
-TraceZDataAggregator::TraceZDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor)
+TracezDataAggregator::TracezDataAggregator(std::shared_ptr<TracezSpanProcessor> span_processor)
 {
-  traceZSpanProcessor = spanProcessor;
+  tracez_span_processor_ = span_processor;
 }
 
-std::unordered_set<std::string> TraceZDataAggregator::getSpanNames()
+std::unordered_set<std::string> TracezDataAggregator::getSpanNames()
 {
-  std::unordered_set<std::string> spanNames;
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> runningSpans = traceZSpanProcessor->GetRunningSpans();
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> completedSpans = traceZSpanProcessor->GetCompletedSpans();
+  std::unordered_set<std::string> span_names;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> running_spans = tracez_span_processor_->GetRunningSpans();
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> completed_spans = tracez_span_processor_->GetCompletedSpans();
 
-  for(auto span: runningSpans)spanNames.insert(span->GetName().data());
-  for(auto span: completedSpans)spanNames.insert(span->GetName().data());
-  return spanNames;
+  for(auto span: running_spans)span_names.insert(span->GetName().data());
+  for(auto span: completed_spans)span_names.insert(span->GetName().data());
+  return span_names;
 }
 
-std::unordered_map<std::string, int> TraceZDataAggregator::GetCountOfRunningSpans()
+std::unordered_map<std::string, int> TracezDataAggregator::GetCountOfRunningSpans()
 {
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> runningSpans = traceZSpanProcessor->GetRunningSpans();
-  std::unordered_map<std::string, int> spanNameToCount;
-  
-  for(auto runningSpan: runningSpans) spanNameToCount[runningSpan->GetName().data()]++;
-  
-  return spanNameToCount;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> running_spans = tracez_span_processor_->GetRunningSpans();
+  std::unordered_map<std::string, int> running_span_count;
+  for(auto running_span: running_spans) running_span_count[running_span->GetName().data()]++;
+  return running_span_count;
 }
 
-std::vector<opentelemetry::sdk::trace::Recordable> TraceZDataAggregator::GetRunningSpansWithGivenName(
-    std::string spanName)
+std::vector<opentelemetry::sdk::trace::Recordable> TracezDataAggregator::GetRunningSpansWithGivenName(
+    std::string span_name)
 {
-  std::vector<opentelemetry::sdk::trace::Recordable> spansWithSameName;
-  return spansWithSameName;
+  std::vector<opentelemetry::sdk::trace::Recordable> spans_with_same_name;
+  return spans_with_same_name;
 }
 
-std::unordered_map<std::string, int> TraceZDataAggregator::GetSpanCountForLatencyBoundary(
-    LatencyBoundary latencyBoundary)
+std::unordered_map<std::string, int> TracezDataAggregator::GetSpanCountForLatencyBoundary(
+    LatencyBoundary latency_boundary)
 {
-  std::unordered_map<std::string, int> latencyCountPerName;
-  return latencyCountPerName;
+  std::unordered_map<std::string, int> latency_count_per_name;
+  return latency_count_per_name;
 }
 
 
-Latency_Boundary_Name TraceZDataAggregator::GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable)
+LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable)
 {
-  for(int boundary = 0; boundary < NUMBER_OF_LATENCY_BOUNDARIES; boundary++)
+  for(int boundary = 0; boundary < kNumberOfLatencyBoundaries; boundary++)
   {
-    if(Latency_Boundaries[boundary].IsDurationInBucket(recordable->GetDuration()))return (Latency_Boundary_Name)boundary;
+    if(kLatencyBoundaries[boundary].IsDurationInBucket(recordable->GetDuration()))return (LatencyBoundaryName)boundary;
   }
-  return Latency_Boundary_Name::SECONDx100_MAX;
+  return LatencyBoundaryName::k100SecondToMax;
 }
 
-std::unordered_map<std::string, std::vector<int>[NUMBER_OF_LATENCY_BOUNDARIES]> TraceZDataAggregator::GetSpanCountPerLatencyBoundary()
+std::unordered_map<std::string, std::vector<int>[kNumberOfLatencyBoundaries]> TracezDataAggregator::GetSpanCountPerLatencyBoundary()
 {
-  std::unordered_map<std::string, std::vector<int>[NUMBER_OF_LATENCY_BOUNDARIES]> latencyHistogramPerName;
   //Get completed spans
   //For each completed span find it's latency bucket and increment count
-  return latencyHistogramPerName;
+  return aggregated_data_;
 }
 
 }  // namespace zpages

@@ -3,6 +3,7 @@
 // include libraries
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <unordered_set>
 #include <vector>
 
@@ -19,10 +20,10 @@ namespace ext
 namespace zpages
 {
 
-class TraceZDataAggregator
+class TracezDataAggregator
 {
 public:
-  TraceZDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor);
+  TracezDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor);
 
   /**
    * GetSpanNames gets the names of all running and completed spans
@@ -42,7 +43,7 @@ public:
    * @return a vector of all Recordables(interface for span data) for running spans with the given name
    */
   std::vector<opentelemetry::sdk::trace::Recordable> GetRunningSpansWithGivenName(
-      std::string spanName);
+      std::string span_name);
 
   /** 
    * GetSpanCountForLatencyBoundary gets the number of spans(for each name) that fall within a latency boundary
@@ -50,19 +51,21 @@ public:
    * @return a hashmap that maps the name to count of occurence of spans with that name in the specified boundary
    */
   std::unordered_map<std::string, int> GetSpanCountForLatencyBoundary(
-      LatencyBoundary latencyBoundary);
+      LatencyBoundary latency_boundary);
 
-  Latency_Boundary_Name GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable);
+  LatencyBoundaryName GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable);
   /** 
    * GetSpanCountPerLatencyBoundary maps a span name to a vector which keeps track of counts of spans for each
    * latency bucket
    * @return a hash map which maps span name to a vector of integers with each index representing a latency bucket
    *         and value representing the number of spans in that latency bucket for the given name.
    */
-  std::unordered_map<std::string, std::vector<int>[NUMBER_OF_LATENCY_BOUNDARIES]> GetSpanCountPerLatencyBoundary();
+  std::unordered_map<std::string, std::vector<int>[kNumberOfLatencyBoundaries]> GetSpanCountPerLatencyBoundary();
 
 private:
-  std::shared_ptr<TracezSpanProcessor> traceZSpanProcessor;
+  std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;
+  std::unordered_map<std::string, std::vector<int>[kNumberOfLatencyBoundaries]> aggregated_data_;
+  std::map<std::string, std::vector<std::vector<opentelemetry::sdk::trace::Recordable*>>[kNumberOfLatencyBoundaries]> sample_spans_;
 };
 
 }  // namespace zpages
