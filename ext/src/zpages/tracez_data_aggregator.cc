@@ -11,11 +11,11 @@ TraceZDataAggregator::TraceZDataAggregator(std::shared_ptr<TracezSpanProcessor> 
   traceZSpanProcessor = spanProcessor;
 }
 
-std::unordered_set<std::string> TraceZDataAggregator::GetSpanNames()
+std::unordered_set<std::string> TraceZDataAggregator::getSpanNames()
 {
   std::unordered_set<std::string> spanNames;
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> runningSpans = traceZSpanProcessor->GetRunningSpans();
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> completedSpans = traceZSpanProcessor->GetCompletedSpans();
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> runningSpans = traceZSpanProcessor->GetRunningSpans();
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> completedSpans = traceZSpanProcessor->GetCompletedSpans();
 
   for(auto span: runningSpans)spanNames.insert(span->GetName().data());
   for(auto span: completedSpans)spanNames.insert(span->GetName().data());
@@ -24,7 +24,7 @@ std::unordered_set<std::string> TraceZDataAggregator::GetSpanNames()
 
 std::unordered_map<std::string, int> TraceZDataAggregator::GetCountOfRunningSpans()
 {
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> runningSpans = traceZSpanProcessor->GetRunningSpans();
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> runningSpans = traceZSpanProcessor->GetRunningSpans();
   std::unordered_map<std::string, int> spanNameToCount;
   
   for(auto runningSpan: runningSpans) spanNameToCount[runningSpan->GetName().data()]++;

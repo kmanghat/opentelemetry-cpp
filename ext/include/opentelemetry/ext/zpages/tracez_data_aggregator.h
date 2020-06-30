@@ -28,7 +28,7 @@ public:
    * GetSpanNames gets the names of all running and completed spans
    * @return a unique set of strings containing all the span names
    */
-  std::unordered_set<std::string> GetSpanNames();
+  std::unordered_set<std::string> getSpanNames();
 
   /**
    * GetCountOfRunningSpans gets the count of spans with a given name that are currently running

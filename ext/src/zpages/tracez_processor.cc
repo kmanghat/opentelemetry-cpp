@@ -5,7 +5,7 @@ namespace ext {
 namespace zpages {
 
   void TracezSpanProcessor::OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept {
-    running_spans.insert(std::unique_ptr<opentelemetry::sdk::trace::Recordable>(&span));
+    running_spans.insert(&span);
   }
 
   void TracezSpanProcessor::OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept {
@@ -17,11 +17,11 @@ namespace zpages {
      }
   }
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetRunningSpans() noexcept {
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> TracezSpanProcessor::GetRunningSpans() noexcept {
     return running_spans;
   }
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetCompletedSpans() noexcept {
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> TracezSpanProcessor::GetCompletedSpans() noexcept {
     return completed_spans;
   }
 
