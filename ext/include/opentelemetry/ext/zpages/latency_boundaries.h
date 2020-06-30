@@ -14,7 +14,7 @@ namespace zpages
 {
 
 /**
-This enum is used to index into the Latency_Boundaries vector that is declared later on,
+Latency_Boundary_Name enum is used to index into the Latency_Boundaries vector that is declared later on,
 using this enum lets you access the Latecy_Boundary at each index without using magic numbers
 **/
 typedef enum Latency_Boundary_Name
@@ -42,8 +42,16 @@ public:
     latencyUpperBound = upperBound;
   }
 
+  /**
+   * GetLatencyLowerBound() function gets the lower bound of the this latency boundary
+   * @return the lower bound of time duration
+   */
   std::chrono::nanoseconds GetLatencyLowerBound() const { return latencyLowerBound; }
 
+ /**
+   * GetLatencyUpperBound() function gets the upper bound of the this latency boundary
+   * @return the lower upper bound of time duration
+   */
   std::chrono::nanoseconds GetLatencyUpperBound() const { return latencyUpperBound; }
 
 private:
@@ -52,7 +60,7 @@ private:
 };
 
 /**
-This constannt contains the 9 latency boundaries and enables them to be interated over
+Latency_Boundaries constannt contains the 9 latency boundaries and enables them to be interated over
 **/
 const std::vector<LatencyBoundary> Latency_Boundaries = {
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(0)), std::chrono::nanoseconds(std::chrono::microseconds(10))),
