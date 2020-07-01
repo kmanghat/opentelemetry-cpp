@@ -116,7 +116,7 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
 
   auto completed_spans = processor->GetCompletedSpans();
 
-  ASSERT_EQ(completed_spans().size(), 0);
+  ASSERT_EQ(completed_spans.size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 2);
 
   span1->End();
@@ -128,7 +128,7 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   }
   temp.clear();
 
-  ASSERT_EQ(completed_spans().size(), 2);
+  ASSERT_EQ(completed_spans.size(), 2);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
 
 }
