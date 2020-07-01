@@ -165,7 +165,7 @@ TEST(TracezDataAggregator, GetSpanCountForLatencyBoundaryReturnsEmptyMap)
 }
 
 #include <iostream>
-
+/*
 TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
 {
   std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
@@ -201,4 +201,4 @@ TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
     for(auto v:t.second) std::cout << v << " ";
     std::cout << "\n";
   }
-}
+}*/

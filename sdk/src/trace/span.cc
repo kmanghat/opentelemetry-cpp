@@ -130,7 +130,7 @@ void Span::End(const trace_api::EndSpanOptions &options) noexcept
                            std::chrono::steady_clock::time_point(start_steady_time));
 
   processor_->OnEnd(std::move(recordable_));
-  //recordable_.reset();
+  recordable_.reset();
 }
 
 bool Span::IsRecording() const noexcept

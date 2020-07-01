@@ -15,10 +15,10 @@ std::unordered_set<std::string> TracezDataAggregator::getSpanNames()
 {
   std::unordered_set<std::string> span_names;
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> running_spans = tracez_span_processor_->GetRunningSpans();
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> completed_spans = tracez_span_processor_->GetCompletedSpans();
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& completed_spans = tracez_span_processor_->GetCompletedSpans();
 
   for(auto span: running_spans)span_names.insert(span->GetName().data());
-  for(auto span: completed_spans)span_names.insert(span->GetName().data());
+  for(auto& span: completed_spans)span_names.insert(span.get()->GetName().data());
   return span_names;
 }
 
@@ -44,7 +44,7 @@ std::unordered_map<std::string, int> TracezDataAggregator::GetSpanCountForLatenc
   return latency_count_per_name;
 }
 
-
+/*
 LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(opentelemetry::sdk::trace::Recordable* recordable)
 {
   std::cout << recordable->GetDuration().count() << "\n";
@@ -57,19 +57,19 @@ LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(opentelemetry::sdk:
 
 std::unordered_map<std::string, std::vector<int>> TracezDataAggregator::GetSpanCountPerLatencyBoundary()
 {
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> completed_spans = tracez_span_processor_->GetCompletedSpans();
-  for(auto span: completed_spans)
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& completed_spans = tracez_span_processor_->GetCompletedSpans();
+  for(auto& span: completed_spans)
   {
     if(aggregated_data_.find(span->GetName().data()) == aggregated_data_.end())
     {
-      aggregated_data_[span->GetName().data()].resize(kNumberOfLatencyBoundaries);
-      sample_spans_[span->GetName().data()].resize(kNumberOfLatencyBoundaries);
+      aggregated_data_[span.get()->GetName().data()].resize(kNumberOfLatencyBoundaries);
+      sample_spans_[span.get()->GetName().data()].resize(kNumberOfLatencyBoundaries);
     }
-    aggregated_data_[span->GetName().data()][GetLatencyBoundary(span)]++;
-    sample_spans_[span->GetName().data()][GetLatencyBoundary(span)].push_back(span);
+    aggregated_data_[span.get()->GetName().data()][GetLatencyBoundary(span)]++;
+    sample_spans_[span.get()->GetName().data()][GetLatencyBoundary(span)].push_back(span);
   }
   return aggregated_data_;
-}
+}*/
 
 }  // namespace zpages
 }  // namespace sdk
