@@ -60,8 +60,13 @@ std::unordered_map<std::string, std::vector<int>> TracezDataAggregator::GetSpanC
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> completed_spans = tracez_span_processor_->GetCompletedSpans();
   for(auto span: completed_spans)
   {
-    if(aggregated_data_.find(span->GetName().data()) == aggregated_data_.end())aggregated_data_[span->GetName().data()].resize(kNumberOfLatencyBoundaries);
+    if(aggregated_data_.find(span->GetName().data()) == aggregated_data_.end())
+    {
+      aggregated_data_[span->GetName().data()].resize(kNumberOfLatencyBoundaries);
+      sample_spans_[span->GetName().data()].resize(kNumberOfLatencyBoundaries);
+    }
     aggregated_data_[span->GetName().data()][GetLatencyBoundary(span)]++;
+    sample_spans_[span->GetName().data()][GetLatencyBoundary(span)].push_back(span);
   }
   return aggregated_data_;
 }
