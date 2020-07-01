@@ -3,6 +3,7 @@
 #include <chrono>
 #include <memory>
 #include <unordered_set>
+#include <vector>
 #include <utility>
 
 #include "opentelemetry/sdk/trace/recordable.h"
@@ -54,7 +55,7 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
 
   std::unordered_set<opentelemetry::sdk::trace::Recordable*>& GetRunningSpans() noexcept;
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetCompletedSpans() noexcept;
+  std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetCompletedSpans() noexcept;
 
   /**
    * Export all ended spans that have not yet been exported.
@@ -81,7 +82,7 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> running_spans;
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> completed_spans;
+  std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> completed_spans;
 };
 }  // namespace zpages
 }  // namespace ext

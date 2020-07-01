@@ -18,7 +18,7 @@ namespace zpages {
      auto completed_span = running_spans.find(span.get());
      if (completed_span != running_spans.end()) {
        running_spans.erase(completed_span);
-       completed_spans.emplace(std::move(span));
+       completed_spans.push_back(std::move(span));
      }
   }
 
@@ -26,7 +26,7 @@ namespace zpages {
     return running_spans;
   }
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetCompletedSpans() noexcept {
+  std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetCompletedSpans() noexcept {
     auto newly_completed_spans = std::move(completed_spans);
     completed_spans.clear();
     return newly_completed_spans;

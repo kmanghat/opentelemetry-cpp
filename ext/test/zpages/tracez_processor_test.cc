@@ -4,6 +4,7 @@
 #include "opentelemetry/sdk/trace/tracer.h"
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
@@ -86,13 +87,11 @@ TEST(TracezSpanProcessor, OneSpanRightContainer) {
 
   ASSERT_EQ(completed_spans.size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 1);
-
   span->End();
 
   auto temp = processor->GetCompletedSpans();
-  for (auto& span : temp) {
-    completed_spans.emplace(std::move(span));
-  }
+  std::move(temp.begin(), temp.end(),
+            std::inserter(completed_spans, completed_spans.end()));
   temp.clear();
 
   ASSERT_EQ(completed_spans.size(), 1);
@@ -100,7 +99,7 @@ TEST(TracezSpanProcessor, OneSpanRightContainer) {
 
 }
 
-
+/*
 TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   std::shared_ptr<bool> span_received(new bool(false));
   std::shared_ptr<bool> shutdown_called(new bool(false));
@@ -132,4 +131,4 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
 
 }
-
+*/
