@@ -99,7 +99,7 @@ TEST(TracezSpanProcessor, OneSpanRightContainer) {
 
 }
 
-/*
+
 TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   std::shared_ptr<bool> span_received(new bool(false));
   std::shared_ptr<bool> shutdown_called(new bool(false));
@@ -122,13 +122,12 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   span2->End();
 
   auto temp = processor->GetCompletedSpans();
-  for (auto& span : temp) {
-    completed_spans.emplace(std::move(span));
-  }
+  std::move(temp.begin(), temp.end(),
+            std::inserter(completed_spans, completed_spans.end()));
   temp.clear();
 
   ASSERT_EQ(completed_spans.size(), 2);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
 
 }
-*/
+
