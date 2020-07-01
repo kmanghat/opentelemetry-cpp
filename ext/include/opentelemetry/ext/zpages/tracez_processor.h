@@ -80,7 +80,6 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
 
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
-  bool IsSampled;
   std::unordered_set<opentelemetry::sdk::trace::Recordable*> RunningSpans;
   std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> CompletedSpans;
 };

@@ -1,4 +1,5 @@
 #include "opentelemetry/ext/zpages/tracez_processor.h"
+#include <iostream>
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
@@ -9,7 +10,12 @@ namespace zpages {
   }
 
   void TracezSpanProcessor::OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept {
-     if (!IsSampled) return;
+
+     nostd::span<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> batch(&span, 1);
+     if (exporter_->Export(batch) == opentelemetry::sdk::trace::ExportResult::kFailure) {
+       std::cerr << "Error batching span\n";
+     }
+
      auto completedSpan = RunningSpans.find(span.get());
      if (completedSpan != RunningSpans.end()) {
        RunningSpans.erase(completedSpan);
