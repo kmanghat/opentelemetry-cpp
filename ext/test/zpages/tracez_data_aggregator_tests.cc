@@ -2,7 +2,7 @@
 #include "opentelemetry/sdk/trace/span_data.h"
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
 #include "opentelemetry/sdk/trace/tracer.h"
-#include "iostream"
+
 
 #include <gtest/gtest.h>
 
@@ -10,6 +10,7 @@ using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
 namespace nostd  = opentelemetry::nostd;
 namespace common = opentelemetry::common;
+using opentelemetry::core::SteadyTimestamp;
 
 /**
  * A mock exporter that switches a flag once a valid recordable was received.
@@ -161,4 +162,43 @@ TEST(TracezDataAggregator, GetSpanCountForLatencyBoundaryReturnsEmptyMap)
   std::unordered_map<std::string, int> latency_count_per_name =
       tracez_data_aggregator->GetSpanCountForLatencyBoundary(kLatencyBoundaries[k0MicroTo10Micro]);
   ASSERT_TRUE(latency_count_per_name.empty());
+}
+
+#include <iostream>
+
+TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
+{
+  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
+      new std::vector<std::unique_ptr<SpanData>>);
+      
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
+  
+  opentelemetry::trace::StartSpanOptions start;
+  start.start_steady_time = SteadyTimestamp(std::chrono::nanoseconds(1));
+
+  opentelemetry::trace::EndSpanOptions end;
+  end.end_steady_time = SteadyTimestamp(std::chrono::nanoseconds(5));
+  
+  opentelemetry::trace::StartSpanOptions start2;
+  start2.start_steady_time = SteadyTimestamp(std::chrono::nanoseconds(100));
+
+  opentelemetry::trace::EndSpanOptions end2;
+  end2.end_steady_time = SteadyTimestamp(std::chrono::nanoseconds(1000000000000000000));
+  
+  auto span_first  = tracer->StartSpan("span 1",start);
+  auto span_second = tracer->StartSpan("span 2",start2);
+
+  span_first -> End(end);
+  span_second -> End(end2);
+
+  std::unordered_map<std::string, std::vector<int>> temp = tracez_data_aggregator -> GetSpanCountPerLatencyBoundary();
+  for(auto t: temp)
+  {
+    std::cout << t.first << " : ";
+    for(auto v:t.second) std::cout << v << " ";
+    std::cout << "\n";
+  }
 }

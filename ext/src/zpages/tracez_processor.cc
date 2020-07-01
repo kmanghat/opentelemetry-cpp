@@ -1,5 +1,4 @@
 #include "opentelemetry/ext/zpages/tracez_processor.h"
-
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {

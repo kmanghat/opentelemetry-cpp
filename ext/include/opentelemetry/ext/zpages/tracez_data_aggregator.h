@@ -53,18 +53,18 @@ public:
   std::unordered_map<std::string, int> GetSpanCountForLatencyBoundary(
       LatencyBoundary latency_boundary);
 
-  LatencyBoundaryName GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable);
+  LatencyBoundaryName GetLatencyBoundary(opentelemetry::sdk::trace::Recordable* recordable);
   /** 
    * GetSpanCountPerLatencyBoundary maps a span name to a vector which keeps track of counts of spans for each
    * latency bucket
    * @return a hash map which maps span name to a vector of integers with each index representing a latency bucket
    *         and value representing the number of spans in that latency bucket for the given name.
    */
-  std::unordered_map<std::string, std::vector<int>[kNumberOfLatencyBoundaries]> GetSpanCountPerLatencyBoundary();
+  std::unordered_map<std::string, std::vector<int>> GetSpanCountPerLatencyBoundary();
 
 private:
   std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;
-  std::unordered_map<std::string, std::vector<int>[kNumberOfLatencyBoundaries]> aggregated_data_;
+  std::unordered_map<std::string, std::vector<int>> aggregated_data_;
   std::map<std::string, std::vector<std::vector<opentelemetry::sdk::trace::Recordable*>>[kNumberOfLatencyBoundaries]> sample_spans_;
 };
 

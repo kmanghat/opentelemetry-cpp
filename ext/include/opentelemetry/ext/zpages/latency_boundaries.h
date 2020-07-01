@@ -68,7 +68,7 @@ private:
 Latency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
 **/
 const std::vector<LatencyBoundary> kLatencyBoundaries = {
-    LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(0)), std::chrono::nanoseconds(std::chrono::microseconds(10))),
+    LatencyBoundary(std::chrono::nanoseconds(0), std::chrono::nanoseconds(std::chrono::microseconds(10))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(10)), std::chrono::nanoseconds(std::chrono::microseconds(100))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(100)), std::chrono::nanoseconds(std::chrono::milliseconds(1))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::milliseconds(1)), std::chrono::nanoseconds(std::chrono::milliseconds(10))),

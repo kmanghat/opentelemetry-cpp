@@ -1,5 +1,5 @@
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
-
+#include <iostream>
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext
 {
@@ -45,8 +45,9 @@ std::unordered_map<std::string, int> TracezDataAggregator::GetSpanCountForLatenc
 }
 
 
-LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(std::shared_ptr<opentelemetry::sdk::trace::Recordable> recordable)
+LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(opentelemetry::sdk::trace::Recordable* recordable)
 {
+  std::cout << recordable->GetDuration().count() << "\n";
   for(int boundary = 0; boundary < kNumberOfLatencyBoundaries; boundary++)
   {
     if(kLatencyBoundaries[boundary].IsDurationInBucket(recordable->GetDuration()))return (LatencyBoundaryName)boundary;
@@ -54,10 +55,14 @@ LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(std::shared_ptr<ope
   return LatencyBoundaryName::k100SecondToMax;
 }
 
-std::unordered_map<std::string, std::vector<int>[kNumberOfLatencyBoundaries]> TracezDataAggregator::GetSpanCountPerLatencyBoundary()
+std::unordered_map<std::string, std::vector<int>> TracezDataAggregator::GetSpanCountPerLatencyBoundary()
 {
-  //Get completed spans
-  //For each completed span find it's latency bucket and increment count
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> completed_spans = tracez_span_processor_->GetCompletedSpans();
+  for(auto span: completed_spans)
+  {
+    if(aggregated_data_.find(span->GetName().data()) == aggregated_data_.end())aggregated_data_[span->GetName().data()].resize(kNumberOfLatencyBoundaries);
+    aggregated_data_[span->GetName().data()][GetLatencyBoundary(span)]++;
+  }
   return aggregated_data_;
 }
 
