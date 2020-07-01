@@ -80,7 +80,7 @@ TEST(TracezSpanProcessor, OneSpanRightContainer) {
   std::shared_ptr<bool> shutdown_called(new bool(false));
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
-  auto tracer = std::shared_ptr<Tracer>(new Tracer(processor));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
 
   auto span = tracer->StartSpan("span");
   auto completed_spans = processor->GetCompletedSpans();
@@ -105,7 +105,7 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   std::shared_ptr<bool> shutdown_called(new bool(false));
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
-  auto tracer = std::shared_ptr<Tracer>(new Tracer(processor));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
 
   ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
