@@ -80,9 +80,9 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
 
  private:
   std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> exporter_;
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> RunningSpans;
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> CompletedSpans;
+  std::unordered_set<opentelemetry::sdk::trace::Recordable*> running_spans;
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> completed_spans;
 };
 }  // namespace zpages
-}  // namespace sdk
+}  // namespace ext
 OPENTELEMETRY_END_NAMESPACE

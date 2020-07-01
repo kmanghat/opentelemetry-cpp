@@ -6,32 +6,31 @@ namespace ext {
 namespace zpages {
 
   void TracezSpanProcessor::OnStart(opentelemetry::sdk::trace::Recordable &span) noexcept {
-    RunningSpans.insert(&span);
+    running_spans.insert(&span);
   }
 
   void TracezSpanProcessor::OnEnd(std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept {
-
      nostd::span<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> batch(&span, 1);
      if (exporter_->Export(batch) == opentelemetry::sdk::trace::ExportResult::kFailure) {
        std::cerr << "Error batching span\n";
      }
 
-     auto completedSpan = RunningSpans.find(span.get());
-     if (completedSpan != RunningSpans.end()) {
-       RunningSpans.erase(completedSpan);
-       CompletedSpans.emplace(std::move(span));
+     auto completed_span = running_spans.find(span.get());
+     if (completed_span != running_spans.end()) {
+       running_spans.erase(completed_span);
+       completed_spans.emplace(std::move(span));
      }
   }
 
   std::unordered_set<opentelemetry::sdk::trace::Recordable*>& TracezSpanProcessor::GetRunningSpans() noexcept {
-    return RunningSpans;
+    return running_spans;
   }
 
   std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& TracezSpanProcessor::GetCompletedSpans() noexcept {
-    return CompletedSpans;
+    return completed_spans;
   }
 
 
 }  // namespace zpages
-}  // namespace sdk
+}  // namespace ext
 OPENTELEMETRY_END_NAMESPACE
