@@ -65,7 +65,7 @@ public:
 private:
   std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;
   std::unordered_map<std::string, std::vector<int>> aggregated_data_;
-  std::map<std::string, std::vector<std::vector<opentelemetry::sdk::trace::Recordable*>>> sample_spans_;
+  std::map<std::string, std::vector<std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>>> sample_spans_;
 };
 
 }  // namespace zpages

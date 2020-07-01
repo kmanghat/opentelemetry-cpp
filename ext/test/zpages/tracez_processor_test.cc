@@ -104,8 +104,8 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
 
-  auto span1 = tracer->StartSpan("span");
-  auto span2 = tracer->StartSpan("span");
+  auto span1 = tracer->StartSpan("span1");
+  auto span2 = tracer->StartSpan("span2");
 
   ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 2);

@@ -15,71 +15,60 @@ using opentelemetry::core::SteadyTimestamp;
 /**
  * A mock exporter that switches a flag once a valid recordable was received.
  */
-class MockSpanExporter final : public SpanExporter
-{
-public:
-  MockSpanExporter(std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received) noexcept
-      : spans_received_(spans_received)
-  {}
+class MockSpanExporter final : public SpanExporter {
+ public:
+  MockSpanExporter(std::shared_ptr<bool> span_received,
+                   std::shared_ptr<bool> shutdown_called) noexcept
+      : span_received_(span_received), shutdown_called_(shutdown_called) {}
 
-  std::unique_ptr<Recordable> MakeRecordable() noexcept override
-  {
+  std::unique_ptr<Recordable> MakeRecordable() noexcept override {
     return std::unique_ptr<Recordable>(new SpanData);
   }
 
-  ExportResult Export(const nostd::span<std::unique_ptr<Recordable>> &recordables) noexcept override
-  {
-    for (auto &recordable : recordables)
-    {
-      auto span = std::unique_ptr<SpanData>(static_cast<SpanData *>(recordable.release()));
-      if (span != nullptr)
-      {
-        spans_received_->push_back(std::move(span));
+  ExportResult Export(
+      const opentelemetry::nostd::span<std::unique_ptr<Recordable>> &spans) noexcept override {
+    for (auto &span : spans) {
+      if (span != nullptr) {
+        *span_received_ = true;
       }
     }
 
     return ExportResult::kSuccess;
   }
 
-  void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
-  {}
+  void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override {
+    *shutdown_called_ = true;
+  }
 
-private:
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received_;
+ private:
+  std::shared_ptr<bool> span_received_;
+  std::shared_ptr<bool> shutdown_called_;
 };
-
-namespace
-{
-std::shared_ptr<TracezDataAggregator> initTracezDataAggregator(
-    std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> &received)
-{
-  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(received));
-  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
-  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
-  return std::shared_ptr<TracezDataAggregator>(new TracezDataAggregator(processor));
-}
-}  // namespace
 
 
 TEST(TracezDataAggregator, getSpanNamesReturnsEmptySet)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
-  auto tracez_data_aggregator = initTracezDataAggregator(spans_received);
   std::unordered_set<std::string> span_names = tracez_data_aggregator->getSpanNames();
   ASSERT_EQ(span_names.size(),0);
 }
 
 TEST(TracezDataAggregator, getSpanNamesReturnsASingleSpan)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
-      
-  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
-  auto tracez_data_aggregator(new TracezDataAggregator(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
   auto span_first  = tracer->StartSpan("span 1");
   
@@ -98,11 +87,11 @@ TEST(TracezDataAggregator, getSpanNamesReturnsASingleSpan)
 
 TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
-      
-  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
   auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
@@ -118,6 +107,7 @@ TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
   
   span_names.clear();
   span_names = tracez_data_aggregator->getSpanNames();
+  
   ASSERT_EQ(span_names.size(),2);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
   ASSERT_TRUE(span_names.find("span 2") != span_names.end());
@@ -125,6 +115,7 @@ TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
   span_second -> End();
   
   span_names.clear();
+  
   span_names = tracez_data_aggregator->getSpanNames();
   ASSERT_EQ(span_names.size(),2);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
@@ -134,20 +125,28 @@ TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
 
 TEST(TracezDataAggregator, GetCountOfRunningSpansReturnsEmptyMap)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
-  auto tracez_data_aggregator = initTracezDataAggregator(spans_received);
   std::unordered_map<std::string, int> span_count = tracez_data_aggregator->GetCountOfRunningSpans();
   ASSERT_TRUE(span_count.empty());
 }
 
 TEST(TracezDataAggregator, GetRunningSpansWithGivenNameReturnsEmptyVector)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
-  auto tracez_data_aggregator = initTracezDataAggregator(spans_received);
   std::vector<Recordable> running_spans =
       tracez_data_aggregator->GetRunningSpansWithGivenName("Non existing span name");
   ASSERT_TRUE(running_spans.empty());
@@ -155,24 +154,28 @@ TEST(TracezDataAggregator, GetRunningSpansWithGivenNameReturnsEmptyVector)
 
 TEST(TracezDataAggregator, GetSpanCountForLatencyBoundaryReturnsEmptyMap)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
-  auto tracez_data_aggregator = initTracezDataAggregator(spans_received);
   std::unordered_map<std::string, int> latency_count_per_name =
       tracez_data_aggregator->GetSpanCountForLatencyBoundary(kLatencyBoundaries[k0MicroTo10Micro]);
   ASSERT_TRUE(latency_count_per_name.empty());
 }
 
 #include <iostream>
-/*
+
 TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
 {
-  std::shared_ptr<std::vector<std::unique_ptr<SpanData>>> spans_received(
-      new std::vector<std::unique_ptr<SpanData>>);
-      
-  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(spans_received));
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
   auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
@@ -201,4 +204,4 @@ TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
     for(auto v:t.second) std::cout << v << " ";
     std::cout << "\n";
   }
-}*/
+}
