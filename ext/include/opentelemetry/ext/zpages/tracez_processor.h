@@ -54,7 +54,7 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
 
   std::unordered_set<opentelemetry::sdk::trace::Recordable*>& GetRunningSpans() noexcept;
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& GetCompletedSpans() noexcept;
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> GetCompletedSpans() noexcept;
 
   /**
    * Export all ended spans that have not yet been exported.

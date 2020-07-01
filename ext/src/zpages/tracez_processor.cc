@@ -26,8 +26,10 @@ namespace zpages {
     return running_spans;
   }
 
-  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& TracezSpanProcessor::GetCompletedSpans() noexcept {
-    return completed_spans;
+  std::unordered_set<std::unique_ptr<opentelemetry::sdk::trace::Recordable>> TracezSpanProcessor::GetCompletedSpans() noexcept {
+    auto newly_completed_spans = std::move(completed_spans);
+    completed_spans.clear();
+    return newly_completed_spans;
   }
 
 
