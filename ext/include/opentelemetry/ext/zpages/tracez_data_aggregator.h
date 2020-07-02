@@ -147,5 +147,5 @@ private:
 };
 
 }  // namespace zpages
-}  // namespace sdk
+}  // namespace ext
 OPENTELEMETRY_END_NAMESPACE

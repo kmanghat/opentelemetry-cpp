@@ -63,6 +63,8 @@ void TracezDataAggregator::AggregateStatusOKSpans(std::unique_ptr<opentelemetry:
 {
   LatencyBoundaryName boundary_name = GetLatencyBoundary(ok_span.get());
   std::string span_name = ok_span.get()->GetName().data();
+  
+  //If the sample span storage is at capacity, remove the span that was inserted at the beginning and free up memory
   if(aggregated_data_[span_name].get()->latency_sample_spans_[boundary_name].size() == kMaxNumberOfSampleSpans)
   {
     aggregated_data_[span_name].get()->latency_sample_spans_[boundary_name].front().reset();
@@ -75,6 +77,8 @@ void TracezDataAggregator::AggregateStatusOKSpans(std::unique_ptr<opentelemetry:
 void TracezDataAggregator::AggregateStatusErrorSpans(std::unique_ptr<opentelemetry::sdk::trace::Recordable>& error_span)
 {
   std::string span_name = error_span.get()->GetName().data();
+  
+  //If the error samples storage is at capacity, remove the span that was inserted at the beginning and free up memory
   if(aggregated_data_[span_name].get()->error_sample_spans_.size() == kMaxNumberOfSampleSpans)
   {
     aggregated_data_[span_name].get()->error_sample_spans_.front().reset();
@@ -90,10 +94,11 @@ void TracezDataAggregator::AggregateCompletedSpans()
   
   for(auto& span: completed_spans)
   {
-    if(aggregated_data_.find(span.get()->GetName().data()) == aggregated_data_.end())
-    {
-      aggregated_data_[span.get()->GetName().data()] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
-    }
+    std::string span_name = span.get()->GetName().data();
+    
+    if(aggregated_data_.find(span_name) == aggregated_data_.end())
+    aggregated_data_[span_name] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
+    
     if(span.get()->GetStatus() == opentelemetry::trace::CanonicalCode::OK)AggregateStatusOKSpans(span);
     else AggregateStatusErrorSpans(span);
   }
@@ -104,10 +109,12 @@ void TracezDataAggregator::AggregateRunningSpans()
   auto running_spans = tracez_span_processor_->GetRunningSpans();
   for(auto running_span: running_spans)
   {
-    if(aggregated_data_.find(running_span->GetName().data()) == aggregated_data_.end())
-    aggregated_data_[running_span->GetName().data()] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
+    std::string span_name = running_span->GetName().data();
+    
+    if(aggregated_data_.find(span_name) == aggregated_data_.end())
+    aggregated_data_[span_name] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
 
-    aggregated_data_[running_span->GetName().data()].get()->running_spans_++;
+    aggregated_data_[span_name].get()->running_spans_++;
   }
 }
 
@@ -120,5 +127,5 @@ void TracezDataAggregator::AggregateSpans()
 
 
 }  // namespace zpages
-}  // namespace sdk
+}  // namespace ext
 OPENTELEMETRY_END_NAMESPACE

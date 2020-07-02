@@ -48,12 +48,17 @@ public:
    */
   std::chrono::nanoseconds GetLatencyLowerBound() const { return latency_lower_bound_; }
 
- /**
+  /**
    * GetLatencyUpperBound() function gets the upper bound of the this latency boundary
    * @return the lower upper bound of time duration
    */
   std::chrono::nanoseconds GetLatencyUpperBound() const { return latency_upper_bound_; }
   
+  /**
+   * IsDurationInBucket is used to check if a duration is within this latency boundary
+   * @param duration is the given duration to be checked
+   * @returns true if it is within the boundaries
+   */
   bool IsDurationInBucket(std::chrono::nanoseconds duration) const
   {
     return (duration >= latency_lower_bound_ && duration < latency_upper_bound_);
@@ -65,8 +70,8 @@ private:
 };
 
 /**
-Latency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
-**/
+ *Latency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
+ */
 const std::vector<LatencyBoundary> kLatencyBoundaries = {
     LatencyBoundary(std::chrono::nanoseconds(0), std::chrono::nanoseconds(std::chrono::microseconds(10))),
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::microseconds(10)), std::chrono::nanoseconds(std::chrono::microseconds(100))),
@@ -79,9 +84,9 @@ const std::vector<LatencyBoundary> kLatencyBoundaries = {
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(100)), std::chrono::nanoseconds(std::chrono::system_clock::duration::max())),
   };
 
-
+/** The number of latency boundaries **/
 const int kNumberOfLatencyBoundaries = 9;
 
 }  // namespace zpages
-}  // namespace sdk
+}  // namespace ext
 OPENTELEMETRY_END_NAMESPACE
