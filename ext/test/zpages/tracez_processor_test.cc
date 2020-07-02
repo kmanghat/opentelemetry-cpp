@@ -4,6 +4,7 @@
 #include "opentelemetry/sdk/trace/tracer.h"
 
 #include <gtest/gtest.h>
+#include <iostream>
 
 using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
@@ -82,13 +83,18 @@ TEST(TracezSpanProcessor, OneSpanRightContainer) {
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
 
   auto span = tracer->StartSpan("span");
+  auto completed_spans = processor->GetCompletedSpans();
 
-  ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
+  ASSERT_EQ(completed_spans.size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 1);
-
   span->End();
 
-  ASSERT_EQ(processor->GetCompletedSpans().size(), 1);
+  auto temp = processor->GetCompletedSpans();
+  std::move(temp.begin(), temp.end(),
+            std::inserter(completed_spans, completed_spans.end()));
+  temp.clear();
+
+  ASSERT_EQ(completed_spans.size(), 1);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
 
 }
@@ -107,13 +113,20 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   auto span1 = tracer->StartSpan("span1");
   auto span2 = tracer->StartSpan("span2");
 
-  ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
+  auto completed_spans = processor->GetCompletedSpans();
+
+  ASSERT_EQ(completed_spans.size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 2);
 
   span1->End();
   span2->End();
 
-  ASSERT_EQ(processor->GetCompletedSpans().size(), 2);
+  auto temp = processor->GetCompletedSpans();
+  std::move(temp.begin(), temp.end(),
+            std::inserter(completed_spans, completed_spans.end()));
+  temp.clear();
+
+  ASSERT_EQ(completed_spans.size(), 2);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
 
 }

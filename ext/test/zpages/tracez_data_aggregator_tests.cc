@@ -56,7 +56,7 @@ TEST(TracezDataAggregator, getSpanNamesReturnsEmptySet)
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
   auto tracez_data_aggregator (new TracezDataAggregator(processor));
   
-  std::unordered_set<std::string> span_names = tracez_data_aggregator->getSpanNames();
+  std::unordered_set<std::string> span_names = tracez_data_aggregator->GetSpanNames();
   ASSERT_EQ(span_names.size(),0);
 }
 
@@ -72,13 +72,13 @@ TEST(TracezDataAggregator, getSpanNamesReturnsASingleSpan)
   
   auto span_first  = tracer->StartSpan("span 1");
   
-  std::unordered_set<std::string> span_names = tracez_data_aggregator->getSpanNames();
+  std::unordered_set<std::string> span_names = tracez_data_aggregator->GetSpanNames();
   ASSERT_EQ(span_names.size(),1);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
   
   span_first -> End();
   
-  span_names = tracez_data_aggregator->getSpanNames();
+  span_names = tracez_data_aggregator->GetSpanNames();
   ASSERT_EQ(span_names.size(),1);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
 }
@@ -98,7 +98,7 @@ TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
   auto span_first  = tracer->StartSpan("span 1");
   auto span_second = tracer->StartSpan("span 2");
   
-  std::unordered_set<std::string> span_names = tracez_data_aggregator->getSpanNames();
+  std::unordered_set<std::string> span_names = tracez_data_aggregator->GetSpanNames();
   ASSERT_EQ(span_names.size(),2);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
   ASSERT_TRUE(span_names.find("span 2") != span_names.end());
@@ -106,7 +106,7 @@ TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
   span_first -> End();
   
   span_names.clear();
-  span_names = tracez_data_aggregator->getSpanNames();
+  span_names = tracez_data_aggregator->GetSpanNames();
   
   ASSERT_EQ(span_names.size(),2);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
@@ -116,7 +116,7 @@ TEST(TracezDataAggregator, GetSpanNamesReturnsTwoSpans)
   
   span_names.clear();
   
-  span_names = tracez_data_aggregator->getSpanNames();
+  span_names = tracez_data_aggregator->GetSpanNames();
   ASSERT_EQ(span_names.size(),2);
   ASSERT_TRUE(span_names.find("span 1") != span_names.end());
   ASSERT_TRUE(span_names.find("span 2") != span_names.end());
@@ -167,8 +167,6 @@ TEST(TracezDataAggregator, GetSpanCountForLatencyBoundaryReturnsEmptyMap)
   ASSERT_TRUE(latency_count_per_name.empty());
 }
 
-#include <iostream>
-
 TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
 {
   std::shared_ptr<bool> span_received(new bool(false));
@@ -186,22 +184,38 @@ TEST(TracezDataAggregator, GetSpanCountPerLatencyBoundary)
   end.end_steady_time = SteadyTimestamp(std::chrono::nanoseconds(5));
   
   opentelemetry::trace::StartSpanOptions start2;
-  start2.start_steady_time = SteadyTimestamp(std::chrono::nanoseconds(100));
+  start2.start_steady_time = SteadyTimestamp(std::chrono::nanoseconds(1));
 
   opentelemetry::trace::EndSpanOptions end2;
-  end2.end_steady_time = SteadyTimestamp(std::chrono::nanoseconds(1000000000000000000));
+  end2.end_steady_time = SteadyTimestamp(std::chrono::nanoseconds(1000000));
   
   auto span_first  = tracer->StartSpan("span 1",start);
   auto span_second = tracer->StartSpan("span 2",start2);
+  auto span_third = tracer->StartSpan("span 2",start2);
+  auto span_fourth = tracer->StartSpan("span 2",start2);
+  auto span_fifth = tracer->StartSpan("span 2",start2);
+  auto span_sixth = tracer->StartSpan("span 2",start2);
+  auto span_seventh = tracer->StartSpan("span 2",start2);
+  
 
   span_first -> End(end);
   span_second -> End(end2);
+  span_third -> End(end2);
+  span_fourth -> End(end2);
+  span_fifth -> End(end2);
+  span_sixth -> End(end2);
+  span_seventh -> End(end2);
 
-  std::unordered_map<std::string, std::vector<int>> temp = tracez_data_aggregator -> GetSpanCountPerLatencyBoundary();
-  for(auto t: temp)
+  const std::map<std::string, std::unique_ptr<AggregatedInformation>>& data = tracez_data_aggregator->GetAggregatedData();
+  std::cout << data.size() << std::endl;
+  for(auto& t : data)
   {
     std::cout << t.first << " : ";
-    for(auto v:t.second) std::cout << v << " ";
+    for(int i = 0; i < 9; i++)
+    {
+      std::cout << t.second.get()->span_count_per_latency_bucket_[i] << " " << (LatencyBoundaryName)i << "\n";
+      for(auto& sp:t.second.get()->latency_sample_spans_[i])std::cout << sp.get()->GetName() << " " << std::endl;
+    }
     std::cout << "\n";
   }
 }
