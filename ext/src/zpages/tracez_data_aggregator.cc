@@ -11,39 +11,6 @@ TracezDataAggregator::TracezDataAggregator(std::shared_ptr<TracezSpanProcessor> 
   tracez_span_processor_ = span_processor;
 }
 
-std::unordered_set<std::string> TracezDataAggregator::GetSpanNames()
-{
-  std::unordered_set<std::string> span_names;
-  auto running_spans = tracez_span_processor_->GetRunningSpans();
-  auto completed_spans = tracez_span_processor_->GetCompletedSpans();
-  
-  for(auto span: running_spans)span_names.insert(span->GetName().data());
-  for(auto& span: completed_spans)span_names.insert(span.get()->GetName().data());
-  return span_names;
-}
-
-std::unordered_map<std::string, int> TracezDataAggregator::GetCountOfRunningSpans()
-{
-  std::unordered_set<opentelemetry::sdk::trace::Recordable*> running_spans = tracez_span_processor_->GetRunningSpans();
-  std::unordered_map<std::string, int> running_span_count;
-  for(auto running_span: running_spans) running_span_count[running_span->GetName().data()]++;
-  return running_span_count;
-}
-
-std::vector<opentelemetry::sdk::trace::Recordable> TracezDataAggregator::GetRunningSpansWithGivenName(
-    std::string span_name)
-{
-  std::vector<opentelemetry::sdk::trace::Recordable> spans_with_same_name;
-  return spans_with_same_name;
-}
-
-std::unordered_map<std::string, int> TracezDataAggregator::GetSpanCountForLatencyBoundary(
-    LatencyBoundary latency_boundary)
-{
-  std::unordered_map<std::string, int> latency_count_per_name;
-  return latency_count_per_name;
-}
-
 const std::map<std::string, std::unique_ptr<AggregatedInformation>>& TracezDataAggregator:: GetAggregatedData()
 {
   AggregateSpans();
