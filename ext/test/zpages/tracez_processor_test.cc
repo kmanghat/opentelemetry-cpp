@@ -45,16 +45,95 @@ class MockSpanExporter final : public SpanExporter {
 
 /*
  * Helper function uses the current processor to
- * get the newly completed_spans, and adds them to
- * an existing vector
+ * update spans contained in completed_spans and
+ * running_spans.
  */
-void UpdateCompletedSpans(std::shared_ptr<TracezSpanProcessor>& processor,
-    std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& spans) {
+void UpdateSpans(std::shared_ptr<TracezSpanProcessor>& processor,
+    std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& completed,
+    std::unordered_set<opentelemetry::sdk::trace::Recordable*>& running) {
 
+  running = processor->GetRunningSpans();
   auto temp = processor->GetCompletedSpans();
   std::move(temp.begin(), temp.end(),
-            std::inserter(spans, spans.end()));
+            std::inserter(completed, completed.end()));
   temp.clear();
+
+}
+
+
+
+/*
+ * Returns true if all the span names in the name
+ * vector within the given range appears in at least
+ * the same frequency as they do in running_spans
+ *
+ * If no start value is given, start at index 0
+ * If no end value is given, end at name vector end
+ */
+bool ContainNames(const std::vector<std::string>& names,
+    std::unordered_set<opentelemetry::sdk::trace::Recordable*>& running,
+    unsigned int name_start = 0, unsigned int name_end = 0) {
+  if (name_end == 0) name_end = names.size();
+
+  unsigned int num_names = name_end - name_start;
+
+  // If there's more names than spans, impossible to have all names
+  if (num_names > running.size()) return false;
+  std::vector<bool> is_contained(num_names, false);
+
+  // Mark all names that are contain only once
+  // in the order they appear
+  for (auto &span : running) {
+    for (unsigned int i = 0; i < num_names; i++) {
+      if (span->GetName() == names[name_start + i] && !is_contained[i]) { 
+        is_contained[i] = true;
+	break;
+      }
+    }
+  }
+
+
+  for (auto &&b : is_contained) {
+    if (!b) return false;
+  }
+
+  return true;
+
+}
+
+
+/*
+ * Returns true if all the span names in the name
+ * vector within the given range appears in at least
+ * the same frequency as they do in running_spans
+ *
+ * If no start value is given, start at index 0
+ * If no end value is given, end at name vector end
+ */
+bool ContainNames(const std::vector<std::string>& names,
+    std::vector<std::unique_ptr<opentelemetry::sdk::trace::Recordable>>& completed,
+    unsigned int name_start = 0, unsigned int name_end = 0) {
+  if (name_end == 0) name_end = names.size();
+
+  unsigned int num_names = name_end - name_start;
+
+  if (num_names > completed.size()) return false;
+  std::vector<bool> is_contained(num_names, false);
+
+  for (auto &span : completed) {
+    for (unsigned int i = 0; i < num_names; i++) {
+      if (span->GetName() == names[name_start + i] && !is_contained[i]) {
+        is_contained[i] = true;
+	break;
+      }
+    }
+  }
+
+  for (auto &&b : is_contained) {
+    if (!b) return false;
+  }
+
+  return true;  
 
 }
 
@@ -93,8 +172,8 @@ TEST(TracezSpanProcessor, NoSpans) {
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
 
-  ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
   ASSERT_EQ(processor->GetRunningSpans().size(), 0);
+  ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
 
 }
 
@@ -109,25 +188,23 @@ TEST(TracezSpanProcessor, OneSpanRightContainer) {
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto running = processor->GetRunningSpans();
+  auto completed = processor->GetCompletedSpans();
 
   auto span = tracer->StartSpan("span");
-  auto completed_spans = processor->GetCompletedSpans();
-  auto running_spans = processor->GetRunningSpans();
+  UpdateSpans(processor, completed, running);
 
-  ASSERT_EQ(completed_spans.size(), 0);
-  ASSERT_EQ(running_spans.size(), 1);
-  ASSERT_EQ((*(running_spans.begin()))->GetName(), "span");
+  ASSERT_EQ((*(running.begin()))->GetName(), "span");
+  ASSERT_EQ(running.size(), 1);
+  ASSERT_EQ(completed.size(), 0);
 
   span->End();
 
-  running_spans.clear();
-  running_spans = processor->GetRunningSpans();
+  UpdateSpans(processor, completed, running);
 
-  completed_spans = processor->GetCompletedSpans();
-
-  ASSERT_EQ(completed_spans.size(), 1);
-  ASSERT_EQ((*(completed_spans.begin()))->GetName(), "span");
-  ASSERT_EQ(running_spans.size(), 0);
+  ASSERT_EQ((*(completed.begin()))->GetName(), "span");
+  ASSERT_EQ(running.size(), 0);
+  ASSERT_EQ(completed.size(), 1);
 
 }
 
@@ -142,36 +219,92 @@ TEST(TracezSpanProcessor, MultipleSpansRightContainer) {
   std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
   auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
-  auto running_spans = processor->GetRunningSpans();
-  auto completed_spans = processor->GetCompletedSpans();
+  auto running = processor->GetRunningSpans();
+  auto completed = processor->GetCompletedSpans();
 
-  ASSERT_EQ(processor->GetCompletedSpans().size(), 0);
-  ASSERT_EQ(processor->GetRunningSpans().size(), 0);
+  ASSERT_EQ(running.size(), 0);
+  ASSERT_EQ(completed.size(), 0);
+ 
+  std::vector<std::string> span_names = {"s1", "s2", "s3", "s1"};
 
-  std::vector<bool> is_contained(3, false);
-  std::vector<std::string> span_names = {"s1", "s2", "s3"};
+  // Start and store spans using span_names
   std::vector<opentelemetry::nostd::unique_ptr<opentelemetry::trace::Span>> span_vars;
-  for (auto &str : span_names) span_vars.push_back(tracer->StartSpan(str));
-  for (auto &span : running_spans) std::cerr << span->GetName() << "\n";
-  /*for (auto &span : running_spans) {
-    for (long unsigned int i = 0; i < span_names.size(); i++) {
-      std::cerr << span->GetName() << "\n";
-      if (span->GetName() == span_names[i]) is_contained[i] = true;
-    }
-  }
-  for (auto &&b : is_contained) ASSERT_TRUE(b);
-*/
-  UpdateCompletedSpans(processor, completed_spans);
+  for (const auto &name : span_names) span_vars.push_back(tracer->StartSpan(name));
 
-  ASSERT_EQ(completed_spans.size(), 0);
-  ASSERT_EQ(processor->GetRunningSpans().size(), span_names.size());
+  UpdateSpans(processor, completed, running);
 
+  ASSERT_TRUE(ContainNames(span_names, running));
+  ASSERT_EQ(running.size(), span_names.size());
+  ASSERT_EQ(completed.size(), 0);
+
+  // End all spans
   for (auto &span : span_vars) span->End();
 
-  UpdateCompletedSpans(processor, completed_spans);
+  UpdateSpans(processor, completed, running);
 
-  ASSERT_EQ(completed_spans.size(), span_names.size());
-  ASSERT_EQ(processor->GetRunningSpans().size(), 0);
+  ASSERT_TRUE(ContainNames(span_names, completed));
+  ASSERT_EQ(running.size(), 0);
+  ASSERT_EQ(completed.size(), span_names.size());
 
 }
+
+
+/*
+ * Test if multiple spans move from running to completed
+ * at expected times while some moved and some don't
+*/
+TEST(TracezSpanProcessor, MultipleSpansRightContainerIntermediate) {
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto running = processor->GetRunningSpans();
+  auto completed = processor->GetCompletedSpans();
+
+  ASSERT_EQ(completed.size(), 0);
+  ASSERT_EQ(running.size(), 0);
+ 
+  std::vector<std::string> span_names = {"s1", "s2", "s1", "s0", "s"};
+
+  // Start and store spans using span_names
+  std::vector<opentelemetry::nostd::unique_ptr<opentelemetry::trace::Span>> span_vars;
+  for (const auto &name : span_names) span_vars.push_back(tracer->StartSpan(name));
+
+  UpdateSpans(processor, completed, running);
+
+  ASSERT_TRUE(ContainNames(span_names, running));
+  ASSERT_EQ(running.size(), span_names.size());
+  ASSERT_EQ(completed.size(), 0);
+
+  // End 4th span
+  span_vars[3].get()->End();
+  UpdateSpans(processor, completed, running);
+
+  ASSERT_TRUE(ContainNames(span_names, running, 0, 3));
+  ASSERT_TRUE(ContainNames(span_names, running, 4));
+  ASSERT_TRUE(ContainNames(span_names, completed, 3, 4));
+  ASSERT_EQ(running.size(), 4);
+  ASSERT_EQ(completed.size(), 1);
+
+  // End other middle spans
+  for (int i = 1; i < 3; i++) (span_vars[i]).get()->End();
+  UpdateSpans(processor, completed, running);
+
+  ASSERT_TRUE(ContainNames(span_names, running, 4));
+  ASSERT_TRUE(ContainNames(span_names, running, 0, 1));
+  ASSERT_TRUE(ContainNames(span_names, completed, 1, 4));
+  ASSERT_EQ(running.size(), 2);
+  ASSERT_EQ(completed.size(), 3);
+
+  // End all Spans
+  span_vars[0].get()->End();
+  span_vars[4].get()->End();
+  UpdateSpans(processor, completed, running);
+
+  ASSERT_TRUE(ContainNames(span_names, completed));
+  ASSERT_EQ(running.size(), 0);
+  ASSERT_EQ(completed.size(), 5);
+}
+
 
