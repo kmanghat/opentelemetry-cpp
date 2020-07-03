@@ -66,6 +66,8 @@ void TracezDataAggregator::AggregateCompletedSpans()
     if(aggregated_data_.find(span_name) == aggregated_data_.end())
     aggregated_data_[span_name] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
     
+    aggregated_data_[span_name].get() -> running_spans_ = 0;
+    
     if(span.get()->GetStatus() == opentelemetry::trace::CanonicalCode::OK)AggregateStatusOKSpans(span);
     else AggregateStatusErrorSpans(span);
   }
@@ -74,13 +76,19 @@ void TracezDataAggregator::AggregateCompletedSpans()
 void TracezDataAggregator::AggregateRunningSpans()
 {
   auto running_spans = tracez_span_processor_->GetRunningSpans();
+  std::unordered_set<std::string> cache;
   for(auto running_span: running_spans)
   {
     std::string span_name = running_span->GetName().data();
-    
+ 
     if(aggregated_data_.find(span_name) == aggregated_data_.end())
     aggregated_data_[span_name] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
-
+    
+    if(cache.find(span_name) == cache.end())
+    {
+      aggregated_data_[span_name].get() -> running_spans_ = 0;
+      cache.insert(span_name);
+    }
     aggregated_data_[span_name].get()->running_spans_++;
   }
 }

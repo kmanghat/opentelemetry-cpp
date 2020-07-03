@@ -2,7 +2,6 @@
 
 // include libraries
 #include <string>
-#include <unordered_map>
 #include <map>
 #include <unordered_set>
 #include <vector>
@@ -60,11 +59,13 @@ struct AggregatedInformation{
   } 
 };
 
+/**
+ * This class is responsible for collecting raw data and converting it to useful information that can be made available to the user.
+ */
 class TracezDataAggregator
 {
 public:
   TracezDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor);
-
   /**
    * GetLatencyBoundary returns the latency boundary to which the latency of the given recordable belongs to
    * @ param recordable is the recordable for which the latency boundary is to be found
@@ -112,8 +113,9 @@ private:
   std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;
   
   /**
-   Hash map with key being the name of the span and value being a vector of size 9(number of latency boundaries), 
-   with each index value representing number of spans with a particular name and latency boundary.
+   * Tree map with key being the name of the span and value being a vector of size 9(number of latency boundaries), 
+   * with each index value representing number of spans with a particular name and latency boundary. 
+   * A hash map is not used because the span names are displayed in sorted order
    */
   std::map<std::string, std::unique_ptr<AggregatedInformation>> aggregated_data_;
 };
