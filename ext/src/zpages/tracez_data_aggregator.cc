@@ -31,7 +31,7 @@ void TracezDataAggregator::AggregateStatusOKSpans(std::unique_ptr<opentelemetry:
   LatencyBoundaryName boundary_name = GetLatencyBoundary(ok_span.get());
   std::string span_name = ok_span.get()->GetName().data();
   
-  //If the sample span storage is at capacity, remove the span that was inserted at the beginning and free up memory
+  //If the sample span storage is at capacity, remove the span that was inserted earliest and free up memory
   if(aggregated_data_[span_name].get()->latency_sample_spans_[boundary_name].size() == kMaxNumberOfSampleSpans)
   {
     aggregated_data_[span_name].get()->latency_sample_spans_[boundary_name].front().reset();
@@ -45,7 +45,7 @@ void TracezDataAggregator::AggregateStatusErrorSpans(std::unique_ptr<opentelemet
 {
   std::string span_name = error_span.get()->GetName().data();
   
-  //If the error samples storage is at capacity, remove the span that was inserted at the beginning and free up memory
+  //If the error samples storage is at capacity, remove the span that was inserted earliest and free up memory
   if(aggregated_data_[span_name].get()->error_sample_spans_.size() == kMaxNumberOfSampleSpans)
   {
     aggregated_data_[span_name].get()->error_sample_spans_.front().reset();
@@ -66,6 +66,7 @@ void TracezDataAggregator::AggregateCompletedSpans()
     if(aggregated_data_.find(span_name) == aggregated_data_.end())
     aggregated_data_[span_name] = std::unique_ptr<AggregatedInformation>(new AggregatedInformation);
     
+    //running spans are calculated from scratch later
     aggregated_data_[span_name].get() -> running_spans_ = 0;
     
     if(span.get()->GetStatus() == opentelemetry::trace::CanonicalCode::OK)AggregateStatusOKSpans(span);

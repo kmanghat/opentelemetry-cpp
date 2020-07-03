@@ -14,9 +14,9 @@ namespace zpages
 {
 
 /**
-Latency_Boundary_Name enum is used to index into the Latency_Boundaries vector that is declared later on,
-using this enum lets you access the Latecy_Boundary at each index without using magic numbers
-**/
+ * Latency_Boundary_Name enum is used to index into the Latency_Boundaries vector that is declared later on,
+ * using this enum lets you access the Latecy_Boundary at each index without using magic numbers
+ */
 typedef enum LatencyBoundaryName
 {
   k0MicroTo10Micro = 0,
@@ -31,8 +31,8 @@ typedef enum LatencyBoundaryName
 } LatencyBoundaryName;
 
 /**
-LatencyBoundary class is used to define a single latency boundary with a upper and lower bound
-**/
+ * LatencyBoundary class is used to define a single latency boundary with a upper and lower bound
+ */
 class LatencyBoundary
 {
 public:
@@ -70,7 +70,7 @@ private:
 };
 
 /**
- *Latency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
+ * kLatency_Boundaries constant that contains the 9 latency boundaries and enables them to be iterated over
  */
 const std::vector<LatencyBoundary> kLatencyBoundaries = {
     LatencyBoundary(std::chrono::nanoseconds(0), std::chrono::nanoseconds(std::chrono::microseconds(10))),
@@ -84,7 +84,6 @@ const std::vector<LatencyBoundary> kLatencyBoundaries = {
     LatencyBoundary(std::chrono::nanoseconds(std::chrono::seconds(100)), std::chrono::nanoseconds(std::chrono::system_clock::duration::max())),
   };
 
-/** The number of latency boundaries **/
 const int kNumberOfLatencyBoundaries = 9;
 
 }  // namespace zpages
