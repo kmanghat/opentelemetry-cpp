@@ -60,6 +60,7 @@ public:
   virtual nostd::string_view GetName() const noexcept = 0;
   virtual std::chrono::nanoseconds GetDuration() const noexcept = 0;
   virtual opentelemetry::trace::CanonicalCode GetStatus() const noexcept = 0;
+  virtual opentelemetry::nostd::string_view GetDescription() const noexcept = 0;
   
   /**
    * Set the name of the span.

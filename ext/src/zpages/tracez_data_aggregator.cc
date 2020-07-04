@@ -1,5 +1,5 @@
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
-#include <iostream>
+
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext
 {
@@ -19,9 +19,12 @@ const std::map<std::string, std::unique_ptr<AggregatedInformation>>& TracezDataA
 
 LatencyBoundaryName TracezDataAggregator::GetLatencyBoundary(opentelemetry::sdk::trace::Recordable* recordable)
 {
-  for(int boundary = 0; boundary < kNumberOfLatencyBoundaries; boundary++)
+  auto recordable_duration = recordable->GetDuration();
+  for(int boundary = 0; boundary < kNumberOfLatencyBoundaries-1; boundary++)
   {
-    if(kLatencyBoundaries[boundary].IsDurationInBucket(recordable->GetDuration()))return (LatencyBoundaryName)boundary;
+    auto lower_limit = kLatencyBoundaries[boundary];
+    auto upper_limit = kLatencyBoundaries[boundary+1];
+    if(lower_limit <= recordable_duration && recordable_duration < upper_limit)return (LatencyBoundaryName)boundary;
   }
   return LatencyBoundaryName::k100SecondToMax;
 }
