@@ -203,7 +203,8 @@ TEST(TraceZDataAggregator, ErrorSpansAtCapacity)
   ASSERT_EQ(data.size(),1);
   ASSERT_TRUE(data.find("span 1") != data.end());
   ASSERT_EQ(data.at("span 1").get()->error_spans_, 6);
-  ASSERT_EQ(data.at("span 1").get()->error_sample_spans_.begin()->get()->GetDescription(), "span unknown");
+  auto error_sample = data.at("span 1").get()->error_sample_spans_.begin();
+  ASSERT_EQ(error_sample->get()->GetDescription(), "span unknown");
 }
 
 TEST(TraceZDataAggregator, SingleCompletedSpan)
