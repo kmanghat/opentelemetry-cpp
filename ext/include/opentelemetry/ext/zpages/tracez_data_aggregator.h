@@ -66,40 +66,12 @@ class TracezDataAggregator
 {
 public:
   TracezDataAggregator(std::shared_ptr<TracezSpanProcessor> spanProcessor);
-  /**
-   * GetLatencyBoundary returns the latency boundary to which the latency of the given recordable belongs to
-   * @ param recordable is the recordable for which the latency boundary is to be found
-   * @ returns LatencyBoundaryName is the name of the latency boundary that the recordable belongs to
-   */
-  LatencyBoundaryName GetLatencyBoundary(opentelemetry::sdk::trace::Recordable* recordable);
-  
-  /** 
-   * AggregateCompletedSpans is the function that is called to update the aggregated data of newly completed spans
-   */
-  void AggregateCompletedSpans();
-  
-  /**
-   * AggregateRunningSpans aggregates the data for running spans.
-   */
-  void AggregateRunningSpans();
   
   /** 
    * AggregateSpans is the function that is called to update the aggregated data with newly
    * completed and running span information
    */
   void AggregateSpans();
-  
-  /** 
-   * AggregateStatusOKSpans is the function called to update the data of spans with status code OK.
-   * @param ok_span is the span who's data is to be collected
-   */
-  void AggregateStatusOKSpans(std::unique_ptr<opentelemetry::sdk::trace::Recordable>& ok_span);
-  
-  /** 
-   * AggregateStatusErrorSpans is the function that is called to collect the information of error spans
-   * @param error_span is the error span who's data is to be collected
-   */
-  void AggregateStatusErrorSpans(std::unique_ptr<opentelemetry::sdk::trace::Recordable>& error_span);
   
   /** 
    * GetAggregatedData gets the aggregated span information
@@ -118,6 +90,36 @@ private:
    * A hash map is not used because the span names are displayed in sorted order
    */
   std::map<std::string, std::unique_ptr<AggregatedInformation>> aggregated_data_;
+  
+  /**
+   * GetLatencyBoundary returns the latency boundary to which the latency of the given recordable belongs to
+   * @ param recordable is the recordable for which the latency boundary is to be found
+   * @ returns LatencyBoundaryName is the name of the latency boundary that the recordable belongs to
+   */
+  LatencyBoundaryName GetLatencyBoundary(opentelemetry::sdk::trace::Recordable* recordable);
+  
+  /** 
+   * AggregateCompletedSpans is the function that is called to update the aggregated data of newly completed spans
+   */
+  void AggregateCompletedSpans();
+  
+  /**
+   * AggregateRunningSpans aggregates the data for running spans.
+   */
+  void AggregateRunningSpans();
+  
+  
+  /** 
+   * AggregateStatusOKSpans is the function called to update the data of spans with status code OK.
+   * @param ok_span is the span who's data is to be collected
+   */
+  void AggregateStatusOKSpans(std::unique_ptr<opentelemetry::sdk::trace::Recordable>& ok_span);
+  
+  /** 
+   * AggregateStatusErrorSpans is the function that is called to collect the information of error spans
+   * @param error_span is the error span who's data is to be collected
+   */
+  void AggregateStatusErrorSpans(std::unique_ptr<opentelemetry::sdk::trace::Recordable>& error_span);
 };
 
 }  // namespace zpages
