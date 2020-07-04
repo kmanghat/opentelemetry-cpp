@@ -203,8 +203,18 @@ TEST(TraceZDataAggregator, ErrorSpansAtCapacity)
   ASSERT_EQ(data.size(),1);
   ASSERT_TRUE(data.find("span 1") != data.end());
   ASSERT_EQ(data.at("span 1").get()->error_spans_, 6);
+  ASSERT_EQ(data.at("span 1").get()->error_sample_spans_.size(), 5);
+  
   auto error_sample = data.at("span 1").get()->error_sample_spans_.begin();
   ASSERT_EQ(error_sample->get()->GetDescription(), "span unknown");
+  error_sample = std::next(error_sample);
+  ASSERT_EQ(error_sample->get()->GetDescription(), "span invalid");
+  error_sample = std::next(error_sample);
+  ASSERT_EQ(error_sample->get()->GetDescription(), "span deadline exceeded");
+  error_sample = std::next(error_sample);
+  ASSERT_EQ(error_sample->get()->GetDescription(), "span not found");
+  error_sample = std::next(error_sample);
+  ASSERT_EQ(error_sample->get()->GetDescription(), "span already exists");
 }
 
 TEST(TraceZDataAggregator, SingleCompletedSpan)
