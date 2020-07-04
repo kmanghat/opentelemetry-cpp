@@ -182,6 +182,30 @@ TEST(TraceZDataAggregator, MultipleErrorSpanDifferentName)
   ASSERT_EQ(data.at("span 3").get()->error_sample_spans_.begin()->get()->GetDescription(), "span argument invalid");
 }
 
+TEST(TraceZDataAggregator, ErrorSpansAtCapacity)
+{
+  std::shared_ptr<bool> span_received(new bool(false));
+  std::shared_ptr<bool> shutdown_called(new bool(false));
+  std::unique_ptr<SpanExporter> exporter(new MockSpanExporter(span_received, shutdown_called));
+  std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor(std::move(exporter)));
+
+  auto tracer = std::shared_ptr<opentelemetry::trace::Tracer>(new Tracer(processor));
+  auto tracez_data_aggregator (new TracezDataAggregator(processor));
+  
+  tracer->StartSpan("span 1")->SetStatus(opentelemetry::trace::CanonicalCode::CANCELLED,"span cancelled");
+  tracer->StartSpan("span 1")->SetStatus(opentelemetry::trace::CanonicalCode::UNKNOWN,"span unknown");
+  tracer->StartSpan("span 1")->SetStatus(opentelemetry::trace::CanonicalCode::INVALID_ARGUMENT,"span invalid");
+  tracer->StartSpan("span 1")->SetStatus(opentelemetry::trace::CanonicalCode::DEADLINE_EXCEEDED,"span deadline exceeded");
+  tracer->StartSpan("span 1")->SetStatus(opentelemetry::trace::CanonicalCode::NOT_FOUND,"span not found");
+  tracer->StartSpan("span 1")->SetStatus(opentelemetry::trace::CanonicalCode::ALREADY_EXISTS,"span already exists");
+  
+  const std::map<std::string, std::unique_ptr<AggregatedInformation>>& data = tracez_data_aggregator->GetAggregatedData();
+  ASSERT_EQ(data.size(),1);
+  ASSERT_TRUE(data.find("span 1") != data.end());
+  ASSERT_EQ(data.at("span 1").get()->error_spans_, 6);
+  ASSERT_EQ(data.at("span 1").get()->error_sample_spans_.begin()->get()->GetDescription(), "span unknown");
+}
+
 TEST(TraceZDataAggregator, SingleCompletedSpan)
 {
   std::shared_ptr<bool> span_received(new bool(false));
