@@ -100,6 +100,8 @@ void TracezDataAggregator::AggregateRunningSpans()
 
 void TracezDataAggregator::AggregateSpans()
 {
+  //TODO: Something needs to be inplace so that running spans and completed spans don't change in this function 
+  // in between calls
   AggregateCompletedSpans();
   AggregateRunningSpans();
 }
