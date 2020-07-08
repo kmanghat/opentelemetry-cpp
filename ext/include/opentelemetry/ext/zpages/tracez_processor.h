@@ -77,8 +77,8 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
   void ForceFlush(
       std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
   {
-    if (shutdown_signal_received_) return;
     std::this_thread::sleep_for(timeout);
+    if (shutdown_signal_received_) return;
     // TODO: figure out how to send spans to data aggregator when this is called?
     // should running spans be forced to end, and their status reflect this
     // accordingly?
