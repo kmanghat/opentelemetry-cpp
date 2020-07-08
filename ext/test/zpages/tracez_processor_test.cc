@@ -10,9 +10,13 @@ using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
 
 
+// TODO: add tests for checking if spans are accurate when getting snapshots,
+// like when a span completes mid getter call
+// TODO: add tests with ForceFlush and Shutdown
+
 /*
- * Helper function to create a processor when the type of exporter doesn't
- * matter
+ * Helper function to create a processor, which is used while processor details
+ * are still being worked on
  */
 std::shared_ptr<TracezSpanProcessor> MakeProcessor() {
   std::shared_ptr<TracezSpanProcessor> processor(new TracezSpanProcessor());
