@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <vector>
 #include <utility>
+#include <thread>
 #include <iostream>
 
 #include "opentelemetry/sdk/trace/recordable.h"
@@ -76,6 +77,7 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
   void ForceFlush(
       std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
   {
+    std::this_thread::sleep_for(timeout);
     if (shutdown_signal_received_) return;
     // TODO: figure out how to send spans to data aggregator when this is called?
     // should running spans be forced to end, and their status reflect this
@@ -91,7 +93,7 @@ class TracezSpanProcessor : public opentelemetry::sdk::trace::SpanProcessor {
    */
   void Shutdown(std::chrono::microseconds timeout = std::chrono::microseconds(0)) noexcept override
   {
-    ForceFlush();
+    ForceFlush(timeout);
     shutdown_signal_received_ = true; // TODO: what cleanup do we need?
   }
 
