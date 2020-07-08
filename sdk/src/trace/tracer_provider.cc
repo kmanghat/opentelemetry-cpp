@@ -5,9 +5,8 @@ namespace sdk
 {
 namespace trace
 {
-TracerProvider::TracerProvider(std::shared_ptr<SpanProcessor> processor,
-                               std::shared_ptr<Sampler> sampler) noexcept
-    : processor_{processor}, tracer_(new Tracer(std::move(processor))), sampler_(sampler)
+TracerProvider::TracerProvider(std::shared_ptr<SpanProcessor> processor) noexcept
+    : processor_{processor}, tracer_(new Tracer(std::move(processor)))
 {}
 
 opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> TracerProvider::GetTracer(
@@ -28,11 +27,6 @@ void TracerProvider::SetProcessor(std::shared_ptr<SpanProcessor> processor) noex
 std::shared_ptr<SpanProcessor> TracerProvider::GetProcessor() const noexcept
 {
   return processor_.load();
-}
-
-std::shared_ptr<Sampler> TracerProvider::GetSampler() const noexcept
-{
-  return sampler_;
 }
 }  // namespace trace
 }  // namespace sdk
