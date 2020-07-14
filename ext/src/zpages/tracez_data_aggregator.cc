@@ -35,6 +35,8 @@ TracezDataAggregator::~TracezDataAggregator(){
 const std::map<std::string, std::unique_ptr<TracezSpanData>>
     &TracezDataAggregator::GetAggregatedTracezData(){
   std::unique_lock<std::mutex> lock(mtx_);
+  json j;
+  j["pi"] = 3.1412;
   return aggregated_tracez_data_;
 }
 

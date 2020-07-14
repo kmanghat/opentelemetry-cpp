@@ -1,5 +1,6 @@
 #pragma once
 
+#include "nlohmann/json.hpp"
 #include <string>
 #include <map>
 #include <unordered_set>
@@ -11,6 +12,7 @@
 #include <iostream>
 #include <condition_variable>
 
+
 #include "opentelemetry/ext/zpages/tracez_processor.h"
 #include "opentelemetry/sdk/trace/span_data.h"
 #include "opentelemetry/ext/zpages/latency_boundaries.h"
@@ -19,7 +21,7 @@
 
 using opentelemetry::sdk::trace::SpanData;
 using opentelemetry::trace::CanonicalCode;
-
+using nlohmann::json;
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext{
