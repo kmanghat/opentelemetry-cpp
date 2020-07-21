@@ -94,15 +94,13 @@ class TracezHandler {
     auto temp = json::array();
     for (int i = 0; i < rand() % upper + lower; i++) {
       auto start_time = GetRandomTimeInt();
-      auto end_time = start_time + (rand() % 200 + 1);
       temp.push_back({
         {"spanid", GetRandomString()},
         {"parentid", GetRandomVectorItem(parent_ids)},
         {"traceid", GetRandomString()},
         {"start", start_time},
-        {"end", end_time},
         {"description", GetDescriptionString()},
-        {"duration", end_time - start_time},
+        {"duration", rand() % 200 + 1},
       });
     }
     return temp;
@@ -112,6 +110,7 @@ class TracezHandler {
     auto temp = json::array();
     for (int i = 0; i < rand() % upper + lower; i++) {
       auto latency = json::array({
+        rand() % 100,
         rand() % 100,
         rand() % 100,
         rand() % 100,
@@ -135,6 +134,28 @@ class TracezHandler {
     data = CountsMockData(30, 10);
   };
 
+  // Returns the part of the uri with the name wanted, also latency index if
+  // applicable. Doesn't include backslash
+  std::string GetQuery(std::string &uri, std::string &type) {
+    auto type_pos = uri.find(type);
+    if (type_pos == std::string::npos) return "";
+    return uri.substr(type_pos + type.length() + 1);
+  }
+
+  // For a latency query, returns the bucket number
+  short GetLatencyNum(std::string &query) {
+    auto name_pos = query.find("/");
+    if (name_pos == std::string::npos) return -1;
+    return std::stoi(query.substr(0, name_pos - 1));
+  }
+
+  // For a latency query, returns the name of the bucket
+  std::string GetLatencyName(std::string &query) {
+    auto name_pos = query.find("/");
+    if (name_pos == std::string::npos) return "";
+    return query.substr(name_pos + 1);
+  }
+
   HTTP_SERVER_NS::HttpRequestCallback ServeJsonCb{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
     resp.headers[testing::CONTENT_TYPE] = "application/json";
@@ -150,7 +171,7 @@ class TracezHandler {
     else if (req.uri.substr(0, 19) == "/tracez/get/latency") {
       resp.body = LatencyMockData().dump();
     }
-    else {
+    else { // testing if the endpoint base is hit
       resp.body = CountsMockData().dump();
     };
     return 200;
@@ -163,7 +184,6 @@ class TracezHandler {
  private:
   const std::vector<std::string> endpoints {
     "/tracez/get",
-    "/status.json",
   };
   json data;
 
