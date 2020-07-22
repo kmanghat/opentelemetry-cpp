@@ -101,8 +101,8 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     return 404;
   }};
 
-  void InitializeTracezEndpoints(zPagesHttpServer& server) {
-    for (auto &s : tracez_handler_->GetEndpoints()) server[s] = tracez_handler_->ServeJsonCb;
+  void InitializeTracezEndpoint(zPagesHttpServer& server) {
+    server[tracez_handler_->GetEndpoint()] = tracez_handler_->Serve;
     server["/"] = ServeFile;
 
   }
@@ -116,7 +116,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
     tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
         new ext::zpages::TracezHandler(std::move(aggregator)));
-    InitializeTracezEndpoints(*this);
+    InitializeTracezEndpoint(*this);
   };
 
  private:

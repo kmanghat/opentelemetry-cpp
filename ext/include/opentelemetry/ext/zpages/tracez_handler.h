@@ -132,8 +132,25 @@ class TracezHandler {
 
   void updateAggregations() {
     aggregated_data_ = data_aggregator_->GetAggregatedTracezData();
-    std::cout << aggregated_data_.size() << "\n";
+  }
 
+  json GetRunningJSON(const std::string& name) {
+    auto temp = json::array();
+    auto grouping = aggregated_data_.find(name);
+
+    if (grouping != aggregated_data_.end()) {
+      const auto &running_samples = grouping->second.sample_running_spans;
+      for (const auto &sample : running_samples){
+        temp.push_back({
+          {"spanid", sample.span_id},
+          {"parentid", sample.parent_id},
+          {"traceid", sample.trace_id},
+          {"description", sample.description},
+          {"start", sample.start_time},
+        });
+      }
+    }
+    return temp;
   }
 
   json AggregationData() {
@@ -141,10 +158,10 @@ class TracezHandler {
     auto temp = json::array();
     for(const auto &aggregation_group: aggregated_data_){
       const auto &buckets = aggregation_group.second;
-      const auto &complete_ok_spans = buckets.completed_span_count_per_latency_bucket;
+      const auto &complete_ok_counts = buckets.completed_span_count_per_latency_bucket;
       auto latency = json::array();
       for (int i = 0; i < 9; i++) {
-        latency.push_back({complete_ok_spans[i]});
+        latency.push_back({complete_ok_counts[i]});
       }
       temp.push_back({
         {"name", aggregation_group.first},
@@ -158,23 +175,66 @@ class TracezHandler {
 
   TracezHandler(std::unique_ptr<TracezDataAggregator> &&aggregator) {
     data_aggregator_ = std::move(aggregator);
-    data = CountsMockData();
   };
 
-  HTTP_SERVER_NS::HttpRequestCallback ServeJsonCb{[&](HTTP_SERVER_NS::HttpRequest const& req,
+  // Return query after endpoint
+  std::string GetSuffix(const std::string& uri) {
+    if (endpoint_.length() + 1 > uri.length()) return uri;
+    return uri.substr(endpoint_.length() + 1);
+  }
+
+  // Returns whether str starts with pre
+  bool StartsWith(const std::string& str, std::string pre) {
+    if (pre.length() > str.length()) return false;
+    return str.substr(0, pre.length()) == pre;
+  }
+
+  // Check if str starts with endpoint
+  bool StartsWith(const std::string& str) {
+    return StartsWith(str, endpoint_);
+  }
+
+  // Returns string after leftmost backslash. Used for getting bucket number
+  // primarily in latency
+  std::string GetAfterSlash(const std::string& str) {
+    const auto& backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return "";
+    return str.substr(backslash + 1);
+  }
+
+  // Returns string before leftmost backslash. Used for getting aggregation group
+  // name
+  std::string GetBeforeSlash(const std::string& str) {
+    const auto& backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return str;
+    return str.substr(0, backslash);
+  }
+
+  HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
     resp.headers[testing::CONTENT_TYPE] = "application/json";
-    if (req.uri == "/tracez/get/aggregations") {
-      resp.body = AggregationData().dump();
-    }
-    else if (req.uri.substr(0, 19) == "/tracez/get/running") {
-      resp.body = RunningMockData().dump();
-    }
-    else if (req.uri.substr(0, 17) == "/tracez/get/error") {
-      resp.body = ErrorMockData().dump();
-    }
-    else if (req.uri.substr(0, 19) == "/tracez/get/latency") {
-      resp.body = LatencyMockData().dump();
+    if (StartsWith(req.uri)) {
+      std::string query = GetSuffix(req.uri);
+      if (StartsWith(query, "latency")) {
+        auto queried_bucket_name = GetAfterSlash(query);
+        auto queried_latency_index = GetBeforeSlash(queried_bucket_name);
+        auto queried_name = GetAfterSlash(queried_bucket_name);
+        resp.body = LatencyMockData().dump();
+      }
+      else {
+        auto queried_name = GetAfterSlash(query);
+
+        if (StartsWith(query, "aggregations")) {
+          resp.body = AggregationData().dump();
+        }
+        else if (StartsWith(query, "running")) {
+          //resp.body = RunningMockData().dump();
+          resp.body = GetRunningJSON(queried_name).dump();
+        }
+        else if (StartsWith(query, "error")) {
+          resp.body = ErrorMockData().dump();
+        }
+      }
     }
     else {
       resp.body = AggregationData().dump();
@@ -182,19 +242,14 @@ class TracezHandler {
     return 200;
   }};
 
-  std::vector<std::string> GetEndpoints() {
-    return endpoints;
+  std::string GetEndpoint() {
+    return endpoint_;
   }
 
  private:
-  const std::vector<std::string> endpoints {
-    "/tracez/get",
-    "/status.json",
-  };
-  json data;
+  const std::string endpoint_ = "/tracez/get";
   std::map<std::string, TracezData> aggregated_data_;
   std::unique_ptr<TracezDataAggregator> data_aggregator_;
-
 
 };
 
