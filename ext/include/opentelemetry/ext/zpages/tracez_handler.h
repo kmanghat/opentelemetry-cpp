@@ -10,7 +10,11 @@
 
 #include "nlohmann/json.hpp"
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
+#include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
+
 using json = nlohmann::json;
+using namespace opentelemetry::sdk::trace;
+using namespace opentelemetry::ext::zpages;
 
 namespace ext
 {
@@ -108,31 +112,38 @@ class TracezHandler {
     return temp;
   }
 
-  json CountsMockData(int upper = 5, int lower = 0) {
+  json CountsMockData() {
+    aggregated_tracez_data_ = tracez_data_aggregator_->GetAggregatedTracezData();
     auto temp = json::array();
-    for (int i = 0; i < rand() % upper + lower; i++) {
+    std::cout << aggregated_tracez_data_.size() << "\n";
+
+    for(const auto &span_data: aggregated_tracez_data_){
+      const auto tracez_data = span_data.second;
       auto latency = json::array({
-        rand() % 100,
-        rand() % 100,
-        rand() % 100,
-        rand() % 100,
-        rand() % 100,
-        rand() % 100,
-        rand() % 100,
-        rand() % 100,
+        tracez_data.completed_span_count_per_latency_bucket[0],
+        tracez_data.completed_span_count_per_latency_bucket[1],
+        tracez_data.completed_span_count_per_latency_bucket[2],
+        tracez_data.completed_span_count_per_latency_bucket[3],
+        tracez_data.completed_span_count_per_latency_bucket[4],
+        tracez_data.completed_span_count_per_latency_bucket[5],
+        tracez_data.completed_span_count_per_latency_bucket[6],
+        tracez_data.completed_span_count_per_latency_bucket[7],
       });
+      std::cout << tracez_data.error_span_count <<std::endl;
       temp.push_back({
-        {"name", GetRandomString()},
-        {"error", rand() % 100},
-        {"running", rand() % 100},
+        {"name", span_data.first},
+        {"error", tracez_data.error_span_count},
+        {"running", tracez_data.running_span_count},
         {"latency", latency}
       });
     }
     return temp;
   }
 
-  TracezHandler() {
-    data = CountsMockData(30, 10);
+  TracezHandler(std::shared_ptr<TracezSpanProcessor>& processor) {
+    tracez_data_aggregator_ = std::unique_ptr<TracezDataAggregator>(
+        new TracezDataAggregator(processor, milliseconds(0)));
+    data = CountsMockData();
   };
 
   HTTP_SERVER_NS::HttpRequestCallback ServeJsonCb{[&](HTTP_SERVER_NS::HttpRequest const& req,
@@ -166,6 +177,9 @@ class TracezHandler {
     "/status.json",
   };
   json data;
+  std::map<std::string, TracezData> aggregated_tracez_data_;
+  std::unique_ptr<TracezDataAggregator> tracez_data_aggregator_;
+  
 
 };
 

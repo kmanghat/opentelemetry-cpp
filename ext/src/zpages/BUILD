@@ -38,6 +38,8 @@ cc_binary(
     }),
     deps = [
         "//ext:headers",
+        "//sdk/src/trace",
+        "//ext/src/zpages",
         "@github_nlohmann_json//:json",
     ],
 )

@@ -44,8 +44,7 @@ function add () {
   fetch("/status.json").then(res => res.json())
     .then(data => {
         document.getElementById("overview_table")
-            .getElementsByTagName('tbody')[0]
-            .innerHTML += getRows(data);
+            .innerHTML = getRows(data);
     });
   document.getElementById('lastUpdate').innerHTML = new Date().toLocaleString();
 }
