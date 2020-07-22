@@ -112,37 +112,52 @@ class TracezHandler {
     return temp;
   }
 
-  json CountsMockData() {
-    aggregated_tracez_data_ = tracez_data_aggregator_->GetAggregatedTracezData();
+  json CountsMockData(int upper = 5, int lower = 0) {
     auto temp = json::array();
-    std::cout << aggregated_tracez_data_.size() << "\n";
-
-    for(const auto &span_data: aggregated_tracez_data_){
-      const auto tracez_data = span_data.second;
-      auto latency = json::array({
-        tracez_data.completed_span_count_per_latency_bucket[0],
-        tracez_data.completed_span_count_per_latency_bucket[1],
-        tracez_data.completed_span_count_per_latency_bucket[2],
-        tracez_data.completed_span_count_per_latency_bucket[3],
-        tracez_data.completed_span_count_per_latency_bucket[4],
-        tracez_data.completed_span_count_per_latency_bucket[5],
-        tracez_data.completed_span_count_per_latency_bucket[6],
-        tracez_data.completed_span_count_per_latency_bucket[7],
-      });
-      std::cout << tracez_data.error_span_count <<std::endl;
+    for (int i = 0; i < rand() % upper + lower; i++) {
+      auto latency = json::array();
+      for (int j = 0; j < 9; j++) {
+        latency.push_back({rand() % 100});
+      }
       temp.push_back({
-        {"name", span_data.first},
-        {"error", tracez_data.error_span_count},
-        {"running", tracez_data.running_span_count},
+        {"name", GetRandomString()},
+        {"error", rand() % 100},
+        {"running", rand() % 100},
         {"latency", latency}
       });
     }
     return temp;
   }
 
-  TracezHandler(std::shared_ptr<TracezSpanProcessor>& processor) {
-    tracez_data_aggregator_ = std::unique_ptr<TracezDataAggregator>(
-        new TracezDataAggregator(processor, milliseconds(0)));
+
+  void updateAggregations() {
+    aggregated_data_ = data_aggregator_->GetAggregatedTracezData();
+    std::cout << aggregated_data_.size() << "\n";
+
+  }
+
+  json AggregationData() {
+    updateAggregations();
+    auto temp = json::array();
+    for(const auto &aggregation_group: aggregated_data_){
+      const auto &buckets = aggregation_group.second;
+      const auto &complete_ok_spans = buckets.completed_span_count_per_latency_bucket;
+      auto latency = json::array();
+      for (int i = 0; i < 9; i++) {
+        latency.push_back({complete_ok_spans[i]});
+      }
+      temp.push_back({
+        {"name", aggregation_group.first},
+        {"error", buckets.error_span_count},
+        {"running", buckets.running_span_count},
+        {"latency", latency}
+      });
+    }
+    return temp;
+  }
+
+  TracezHandler(std::unique_ptr<TracezDataAggregator> &&aggregator) {
+    data_aggregator_ = std::move(aggregator);
     data = CountsMockData();
   };
 
@@ -150,7 +165,7 @@ class TracezHandler {
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
     resp.headers[testing::CONTENT_TYPE] = "application/json";
     if (req.uri == "/tracez/get/aggregations") {
-      resp.body = data.dump();
+      resp.body = AggregationData().dump();
     }
     else if (req.uri.substr(0, 19) == "/tracez/get/running") {
       resp.body = RunningMockData().dump();
@@ -162,7 +177,7 @@ class TracezHandler {
       resp.body = LatencyMockData().dump();
     }
     else {
-      resp.body = CountsMockData().dump();
+      resp.body = AggregationData().dump();
     };
     return 200;
   }};
@@ -177,9 +192,9 @@ class TracezHandler {
     "/status.json",
   };
   json data;
-  std::map<std::string, TracezData> aggregated_tracez_data_;
-  std::unique_ptr<TracezDataAggregator> tracez_data_aggregator_;
-  
+  std::map<std::string, TracezData> aggregated_data_;
+  std::unique_ptr<TracezDataAggregator> data_aggregator_;
+
 
 };
 

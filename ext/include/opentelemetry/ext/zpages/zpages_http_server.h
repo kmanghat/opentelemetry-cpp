@@ -12,7 +12,6 @@
 #define HAVE_HTTP_DEBUG
 #define HAVE_CONSOLE_LOG
 
-#include "nlohmann/json.hpp"
 #include "opentelemetry/ext/http/server/HttpServer.h"
 #include "opentelemetry/ext/zpages/tracez_handler.h"
 #include "opentelemetry/ext/zpages/tracez_processor.h"
@@ -22,8 +21,6 @@
 
 using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
-
-using json = nlohmann::json;
 
 namespace ext
 {
@@ -110,14 +107,15 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
   }
 
-  zPagesHttpServer(std::string serverHost,std::shared_ptr<TracezSpanProcessor>& processor, int port = 30000) : HttpServer() {
+  zPagesHttpServer(std::unique_ptr<TracezDataAggregator> &&aggregator,
+                   std::string serverHost = "localhost", int port = 30000) : HttpServer() {
     std::ostringstream os;
     os << serverHost << ":" << port;
     setServerName(os.str());
     addListeningPort(port);
 
     tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
-        new ext::zpages::TracezHandler(processor));
+        new ext::zpages::TracezHandler(std::move(aggregator)));
     InitializeTracezEndpoints(*this);
   };
 
