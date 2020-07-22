@@ -43,12 +43,26 @@ const statusCodesDescriptions = {
   'UNAUTHENTICATED': 'The request does not have valid authentication credentials for the operation.',
 };
 
+// Latency info is returned as an array, so they need to be parsed accordingly
+const getLatencyCell = (span, i, h) => `<td class='click'
+      onclick="overwriteDetailedTable(${i}, '${span['name']}')">${span[h][i]}</td>`;
+
+// Pretty print a cell with a map
+const getKeyValueCell = (span, i, h) => `<td><pr><code>
+	${JSON.stringify(span[h][i], null, 2)}
+	</code></pre></td>`;
+
 // Standard categories when checking span details
-const detailCols = ['spanid', 'parentid', 'traceid', 'start', 'description']; // Columns error, running, and latency spans all share
-const numCols = ['duration']; // Categories to change to num
+const idCols = ['spanid', 'parentid', 'traceid']
+const detailCols = ['description']; // Columns error, running, and latency spans all share
 const dateCols = ['start']; // Categories to change to date
+const numCols = ['duration']; // Categories to change to num
 const clickCols = ['error', 'running']; // Non-latency clickable cols
-const updateLastRefreshStr = () => document.getElementById('lastUpdateTime').innerHTML = new Date().toLocaleString(); // update
+const arrayCols = { 
+  'latency': getLatencyCell,
+  'events': getKeyValueCell,
+  'attributes': getKeyValueCell
+};
 
 const base_endpt = '/tracez/get/'; // For making GET requests
 // Maps table types to their approporiate formatting
@@ -67,11 +81,11 @@ const tableFormatting = {
     'url': base_endpt + 'error/',
     'html_id': 'name_type_detail_table',
     'sizing': [
-      {'sz': 'sm', 'repeats': 4},
+      {'sz': 'sm', 'repeats': 5},
       {'sz': 'md', 'repeats': 1},
-      {'sz': 'sm', 'repeats': 1},
      ],
-    'headings': [...detailCols, 'status'],
+    'headings': [...idCols, ...dateCols, 'status', ...detailCols],
+    'has_subheading': true,
   },
   'running': {
     'url': base_endpt + 'running/',
@@ -80,18 +94,19 @@ const tableFormatting = {
       {'sz': 'sm', 'repeats': 4},
       {'sz': 'md', 'repeats': 1},
      ],
-    'headings': detailCols,
+    'headings': [...idCols, ...dateCols, ...detailCols],
+    'has_subheading': true,
     'status': 'pending',
   },
   'latency': {
     'url': base_endpt + 'latency/',
     'html_id': 'name_type_detail_table',
     'sizing': [
-      {'sz': 'sm', 'repeats': 4},
+      {'sz': 'sm', 'repeats': 5},
       {'sz': 'md', 'repeats': 1},
-      {'sz': 'sm', 'repeats': 1},
      ],
-    'headings': [...detailCols, ...numCols],
+    'headings': [...idCols, ...dateCols, ...numCols, ...detailCols],
+    'has_subheading': true,
     'status': 'ok'
   }
 };
@@ -107,9 +122,19 @@ const getSizing = group => getFormat(group)['sizing'];
 const getStatus = group => isLatency(group) ? 'ok' : getFormat(group)['status'];
 const getHTML = group => getFormat(group)['html_id'];
 
-const isLatency = group => !(new Set(clickCols).has(group)); 
-const hasCallback = col => !isLatency(col); // Non-latency cb columns
+const isDate = col => new Set(dateCols).has(col);
+const isLatency = group => !(new Set(clickCols).has(group)); // non latency clickable cols, change to include latency?
+const isArrayCol = group => (new Set(Object.keys(arrayCols)).has(group));
+const hasCallback = col => new Set(clickCols).has(col); //!isLatency(col); // Non-latency cb columns
 const hideHeader = h => new Set([...clickCols, 'name']).has(h); // Headers to not show render twice
+const hasSubheading = group => isLatency(group) || 'has_subheading' in getFormat(group); 
+const hasStatus = group => isLatency(group) || 'status' in getFormat(group);
+
+const toTitlecase = word => word.charAt(0).toUpperCase() + word.slice(1);
+const updateLastRefreshStr = () => document.getElementById('lastUpdateTime').innerHTML = new Date().toLocaleString(); // update
+
+const getStatusHTML = group => !hasStatus(group) ? ''
+  : `All of these spans have status code ${getStatus(group)}`;
 
 // Returns an HTML string that handlles width formatting
 // for a table group
@@ -130,13 +155,23 @@ const tableHeadings = group => '<tr>'
 // includes the width formatting and the actual table headers
 const tableHeader = group => tableSizing(group) + tableHeadings(group);
 
-const getLatencyCells = spans => spans['latency'].map(span => `<td class='click'>${span}</td>`).join('');
+// Return formatting for an array-based value based on its header
+const getArrayCells = (h, span) => span[h].length
+  ? (span[h].map((_, i) => arrayCols[h](span, i, h))).join('')
+  : 'Empty';
+
+// Convert cells to Date strings if needed
+const getCellContent = (h, span) => {
+  if (!isDate(h)) return span[h];
+  const dateStr = new Date(span[h]).toString();
+  return dateStr.substring(0, dateStr.indexOf('(') - 1);
+};
 
 // Create cell based on what header we want to render
-const getCell = (h, span) => (h === 'latency') ? getLatencyCells(span)
+const getCell = (h, span) => (isArrayCol(h)) ? getArrayCells(h, span)
   : `<td ${hasCallback(h) ? (`class='click'
           onclick="overwriteDetailedTable('${h}', '${span['name']}')"`)
-      : ''}>` + `${span[h]}</td>`;
+      : ''}>` + `${getCellContent(h, span)}</td>`;
 
 // Returns an HTML string with for a span's aggregated data
 // while columns are ordered according to its table group
@@ -162,11 +197,23 @@ function overwriteTable(group, url_end = '') {
     .catch(err => console.log(err));
 };
 
+// Adds a title subheading where needed
+function updateSubheading(group, name) {
+  if (hasSubheading(group)) {
+    document.getElementById(getHTML(isLatency(group) ? 'latency' : group) + '_header')
+        .innerHTML = `<h2>${name}<br>
+            ${(isLatency(group) ? `${latencies[group]} Bucket` : toTitlecase(group))}
+            Spans</h2><i>Showing sampled span details (up to 5).
+            ${getStatusHTML(group)}</i><br><br>`;
+  }
+};
+
 // Overwrites a table on the DOM based on the group and also
 // changes the subheader, since this a looking at sampled spans
 function overwriteDetailedTable(group, name) {
   if (isLatency(group)) overwriteTable('latency', group + '/' + name);
   else overwriteTable(group, name);
+  updateSubheading(group, name);
 };
 
 // Append to a table on the DOM based on the group given
