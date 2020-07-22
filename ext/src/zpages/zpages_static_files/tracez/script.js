@@ -162,8 +162,8 @@ const getArrayCells = (h, span) => span[h].length
 
 // Convert cells to Date strings if needed
 const getCellContent = (h, span) => {
-  if (!isDate(h)) return span[h];
-  const dateStr = new Date(span[h]).toString();
+  if (!isDate(h)) return (span[h] !== '') ? span[h] : '(empty)';
+  const dateStr = new Date(span[h] / 1000000).toString(); // microseconds too many digits
   return dateStr.substring(0, dateStr.indexOf('(') - 1);
 };
 
