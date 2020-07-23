@@ -161,7 +161,7 @@ class TracezHandler {
       const auto &complete_ok_counts = buckets.completed_span_count_per_latency_bucket;
       auto latency = json::array();
       for (int i = 0; i < 9; i++) {
-        latency.push_back({complete_ok_counts[i]});
+        latency.push_back(complete_ok_counts[i]);
       }
       temp.push_back({
         {"name", aggregation_group.first},
