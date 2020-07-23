@@ -160,11 +160,12 @@ const getArrayCells = (h, span) => span[h].length
   ? (span[h].map((_, i) => arrayCols[h](span, i, h))).join('')
   : 'Empty';
 
+const EmptyContent = () => `<span class='empty'>(not set)</span>`
+
 // Convert cells to Date strings if needed
 const getCellContent = (h, span) => {
-  if (!isDate(h)) return (span[h] !== '') ? span[h] : '(empty)';
-  const dateStr = new Date(span[h] / 1000000).toString(); // microseconds too many digits
-  return dateStr.substring(0, dateStr.indexOf('(') - 1);
+  if (!isDate(h)) return (span[h] !== '') ? span[h] : EmptyContent();
+  return new Date(span[h] / 1000000).toJSON();
 };
 
 // Create cell based on what header we want to render
