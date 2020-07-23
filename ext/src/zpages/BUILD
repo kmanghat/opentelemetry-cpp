@@ -28,9 +28,9 @@ cc_library(
 )
 
 cc_binary(
-    name = "zpages_http_server",
+    name = "zpages_example",
     srcs = [
-        "tracez_http_server.cc"
+        "zpages_example.cc"
     ],
     linkopts = select({
         "//bazel:windows": [],
@@ -40,6 +40,5 @@ cc_binary(
         "//ext:headers",
         "//sdk/src/trace",
         "//ext/src/zpages",
-        "@github_nlohmann_json//:json",
     ],
 )
