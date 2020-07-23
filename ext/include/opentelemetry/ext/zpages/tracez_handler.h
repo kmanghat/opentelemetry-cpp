@@ -129,7 +129,6 @@ class TracezHandler {
         tracez_data.completed_span_count_per_latency_bucket[6],
         tracez_data.completed_span_count_per_latency_bucket[7],
       });
-      std::cout << tracez_data.error_span_count <<std::endl;
       temp.push_back({
         {"name", span_data.first},
         {"error", tracez_data.error_span_count},
