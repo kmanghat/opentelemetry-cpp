@@ -32,7 +32,6 @@ TracezDataAggregator::~TracezDataAggregator() {
 std::map<std::string, TracezData>
 TracezDataAggregator::GetAggregatedTracezData() {
   std::unique_lock<std::mutex> lock(mtx_);
-  std::cout << aggregated_tracez_data_.size() << std::endl;
   return aggregated_tracez_data_;
 }
 

@@ -12,7 +12,6 @@
 #define HAVE_HTTP_DEBUG
 #define HAVE_CONSOLE_LOG
 
-#include "nlohmann/json.hpp"
 #include "opentelemetry/ext/http/server/HttpServer.h"
 #include "opentelemetry/ext/zpages/tracez_handler.h"
 #include "opentelemetry/ext/zpages/tracez_processor.h"
@@ -22,8 +21,6 @@
 
 using namespace opentelemetry::sdk::trace;
 using namespace opentelemetry::ext::zpages;
-
-using json = nlohmann::json;
 
 namespace ext
 {
@@ -104,13 +101,14 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     return 404;
   }};
 
-  void InitializeTracezEndpoints(zPagesHttpServer& server) {
-    for (auto &s : tracez_handler_->GetEndpoints()) server[s] = tracez_handler_->ServeJsonCb;
+  void InitializeTracezEndpoint(zPagesHttpServer& server) {
+    server[tracez_handler_->GetEndpoint()] = tracez_handler_->Serve;
     server["/"] = ServeFile;
 
   }
 
-  zPagesHttpServer(std::string serverHost,std::shared_ptr<TracezSpanProcessor>& processor, int port = 30000) : HttpServer() {
+  zPagesHttpServer(std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor>& processor,
+                   std::string serverHost = "localhost", int port = 30000) : HttpServer() {
     std::ostringstream os;
     os << serverHost << ":" << port;
     setServerName(os.str());
@@ -118,7 +116,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
     tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
         new ext::zpages::TracezHandler(processor));
-    InitializeTracezEndpoints(*this);
+    InitializeTracezEndpoint(*this);
   };
 
  private:

@@ -89,6 +89,10 @@ th {
   color: #f6a81ccc;
 }
 
+.empty {
+  color: #999;
+}
+
 .sm {
   width: 7%;
 }
