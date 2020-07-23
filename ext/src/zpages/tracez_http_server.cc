@@ -10,7 +10,11 @@
 #include "opentelemetry/ext/http/server/HttpServer.h"
 
 void runServer(std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor>& processor) {
-  ext::zpages::zPagesHttpServer server(processor);
+
+  auto aggregator = std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator>(
+      new opentelemetry::ext::zpages::TracezDataAggregator(processor));
+
+  ext::zpages::zPagesHttpServer server(std::move(aggregator));
   server.start();
   // Keeps zPages server up indefinitely
   while (1) std::this_thread::sleep_for(std::chrono::hours(10));
@@ -29,8 +33,6 @@ int main(int argc, char* argv[]) {
 
   auto running = tracer->StartSpan("span1");
   tracer->StartSpan("span2");
-  tracer->StartSpan("span4");
-  tracer->StartSpan("span3");
   std::cout << "Presss <ENTER> to stop...\n";
   std::cin.get();
 }

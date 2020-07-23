@@ -107,7 +107,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
   }
 
-  zPagesHttpServer(std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor>& processor,
+  zPagesHttpServer(std::unique_ptr<TracezDataAggregator> &&aggregator,
                    std::string serverHost = "localhost", int port = 30000) : HttpServer() {
     std::ostringstream os;
     os << serverHost << ":" << port;
@@ -115,9 +115,10 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     addListeningPort(port);
 
     tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
-        new ext::zpages::TracezHandler(processor));
+        new ext::zpages::TracezHandler(std::move(aggregator)));
     InitializeTracezEndpoint(*this);
   };
+
 
  private:
     const std::unordered_map<std::string, std::string> mime_types_ = {

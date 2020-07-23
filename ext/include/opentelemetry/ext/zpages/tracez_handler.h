@@ -173,9 +173,8 @@ class TracezHandler {
     return temp;
   }
 
-  TracezHandler(std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor>& processor) {
-    data_aggregator_ = std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator>(
-      new opentelemetry::ext::zpages::TracezDataAggregator(processor));
+  TracezHandler(std::unique_ptr<TracezDataAggregator> &&aggregator) {
+    data_aggregator_ = std::move(aggregator);
   };
 
   // Return query after endpoint
