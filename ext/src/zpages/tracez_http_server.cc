@@ -1,5 +1,3 @@
-#pragma once
-
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -7,7 +5,6 @@
 #include <iostream>
 
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
-#include "opentelemetry/ext/http/server/HttpServer.h"
 
 // void runServer(ext::zpages::zPagesHttpServer& server) {
 //void runServer(std::shared_ptr<opentelemetry::trace::Tracer>& tracer) {
@@ -23,6 +20,7 @@ void runServer(std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor>&
   server.stop();
 }
 
+// TODO: take in tracer instead of processor
 std::thread zPages(std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor>& processor) {
 //std::thread zPages(std::shared_ptr<opentelemetry::trace::Tracer>& tracer) {
   return std::thread(runServer, std::ref(processor));

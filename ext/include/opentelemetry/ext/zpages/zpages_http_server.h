@@ -1,20 +1,20 @@
 #pragma once
+#ifndef ZPAGES_SERVER
+#define ZPAGES_SERVER
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <mutex>
 #include <string>
-#include <vector>
-#include <algorithm>
 #include <unordered_map>
-
+#include <vector>
 
 #define HAVE_HTTP_DEBUG
 #define HAVE_CONSOLE_LOG
 
-#include "opentelemetry/ext/http/server/HttpServer.h"
-#include "opentelemetry/ext/zpages/tracez_handler.h"
 #include "opentelemetry/ext/zpages/tracez_processor.h"
+#include "opentelemetry/ext/zpages/tracez_handler.h"
 #include "opentelemetry/sdk/trace/recordable.h"
 #include "opentelemetry/sdk/trace/tracer.h"
 
@@ -26,7 +26,6 @@ namespace ext
 {
 namespace zpages
 {
-
 
 class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
  public:
@@ -54,7 +53,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     auto file_type = mime_types_.find(file_ext);
     return (file_type != mime_types_.end())
         ? file_type->second
-        : testing::CONTENT_TYPE_TEXT;
+        : HTTP_SERVER_NS::CONTENT_TYPE_TEXT;
   };
 
   // For serving index.html files
@@ -83,9 +82,9 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     auto f = GetFileName(req.uri);
     auto filename = f.c_str() + 1;
 
-    std::vector<char> content;
+    std::vector<char> content; // HTTP_SERVER_NS
     if (FileGetSuccess(filename, content)) {
-        resp.headers[testing::CONTENT_TYPE] = GetMimeContentType(filename);
+        resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = GetMimeContentType(filename);
         resp.body = std::string(content.data(), content.size());
         resp.code = 200;
         resp.message = HTTP_SERVER_NS::HttpServer::getDefaultResponseMessage(resp.code);
@@ -94,7 +93,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     // Two additional 'special' return codes possible here:
     // 0    - proceed to next handler
     // -1   - immediately terminate and close connection
-    resp.headers[testing::CONTENT_TYPE] = testing::CONTENT_TYPE_TEXT;
+    resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = HTTP_SERVER_NS::CONTENT_TYPE_TEXT;
     resp.code = 404;
     resp.message = HTTP_SERVER_NS::HttpServer::getDefaultResponseMessage(resp.code);
     resp.body = resp.message;
@@ -104,7 +103,6 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
   void InitializeTracezEndpoint(zPagesHttpServer& server) {
     server[tracez_handler_->GetEndpoint()] = tracez_handler_->Serve;
     server["/"] = ServeFile;
-
   }
 
   zPagesHttpServer(std::unique_ptr<TracezDataAggregator> &&aggregator,
@@ -114,8 +112,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     setServerName(os.str());
     addListeningPort(port);
 
-    tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
-        new ext::zpages::TracezHandler(std::move(aggregator)));
+    tracez_handler_ = std::unique_ptr<TracezHandler>(new TracezHandler(std::move(aggregator)));
     InitializeTracezEndpoint(*this);
   };
 
@@ -131,9 +128,11 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
       {"jpg",  "image/jpeg"},
       {"jpeg", "image/jpeg"},
     };
-    std::unique_ptr<ext::zpages::TracezHandler> tracez_handler_;
+    std::unique_ptr<TracezHandler> tracez_handler_;
 
 };
 
 } // namespace zpages
 } // namespace ext
+
+#endif // ZPAGES_SERVER
