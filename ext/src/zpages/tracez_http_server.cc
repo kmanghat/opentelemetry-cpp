@@ -31,6 +31,8 @@ int main(int argc, char* argv[]) {
   auto running = tracer->StartSpan("span1");
   tracer->StartSpan("span2");
   zPagesRun(processor).detach();
+  tracer->StartSpan("span4");
+  tracer->StartSpan("span3");
   std::cout << "Presss <ENTER> to stop...\n";
   std::cin.get();
 }
