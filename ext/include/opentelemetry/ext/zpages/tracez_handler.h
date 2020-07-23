@@ -189,7 +189,6 @@ class TracezHandler {
     return temp;
   }
 
-  //////////////////////////////////
 
  private:
   const std::string endpoint_ = "/tracez/get";
