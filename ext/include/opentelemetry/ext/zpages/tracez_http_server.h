@@ -1,18 +1,16 @@
 #pragma once
-#ifndef TRACEZ_HANDLER
-#define TRACEZ_HANDLER
 
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <mutex>
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
-#include "nlohmann/json.hpp"
-#include "opentelemetry/ext/http/server/HttpServer.h"
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
+#include "opentelemetry/ext/zpages/zpages_http_server.h"
+#include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
 
@@ -20,12 +18,22 @@ OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
 
-class TracezHandler {
+class TracezHttpServer : public ext::zpages::zPagesHttpServer {
  public:
+  TracezHttpServer(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator,
+                   std::string serverHost = "localhost", int port = 30000) : //HttpServer(),
+          data_aggregator_(std::move(aggregator)) {
+    std::ostringstream os;
+    os << serverHost << ":" << port;
+    setServerName(os.str());
+    addListeningPort(port);
+
+    InitializeFileEndpoint(*this);
+    InitializeTracezEndpoint(*this);
+  };
+
   // Construct the handler by taking ownership of the aggregator, whose data is
   // used to send data to the frontend
-  TracezHandler(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator) :
-    data_aggregator_(std::move(aggregator)) {}
 
   // Calls the data aggregator to update the stored aggregation Data
   void UpdateAggregations();
@@ -44,13 +52,20 @@ class TracezHandler {
   // names to their counts for each bucket, first updating the stored data
   json GetAggregations();
 
+
+
+ private:
+  void InitializeTracezEndpoint(TracezHttpServer& server) {
+    server[GetEndpoint()] = Serve;
+  }
+
   std::string GetEndpoint() {
     return endpoint_;
   }
 
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
-    resp.headers[testing::CONTENT_TYPE] = "application/json";
+    resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "application/json";
     if (StartsWith(req.uri)) {
       std::string query = GetSuffix(req.uri);
       if (StartsWith(query, "latency")) {
@@ -79,10 +94,7 @@ class TracezHandler {
     return 200;
   }};
 
- private:
-  ////////////// HELPER FUNCTIONS FOR EXTRACTING INFORMATION ///////
-
-  // Return query after endpoint
+    // Return query after endpoint
   std::string GetSuffix(const std::string& uri) {
     if (endpoint_.length() + 1 > uri.length()) return uri;
     return uri.substr(endpoint_.length() + 1);
@@ -119,10 +131,10 @@ class TracezHandler {
   const std::string endpoint_ = "/tracez/get";
   std::map<std::string, opentelemetry::ext::zpages::TracezData> aggregated_data_;
   std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> data_aggregator_;
+
+
 };
 
-}  // namespace zpages
-}  // namespace ext
+} // namespace zpages
+} // namespace ext
 OPENTELEMETRY_END_NAMESPACE
-
-#endif TRACEZ_HANDLER

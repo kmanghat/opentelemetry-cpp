@@ -1,21 +1,22 @@
 #pragma once
 
-#include <fstream>
-#include <string>
 #include <chrono>
+#include <fstream>
 #include <iostream>
+#include <string>
 
-#include "opentelemetry/ext/zpages/zpages_http_server.h"
-#include "opentelemetry/ext/http/server/HttpServer.h"
+#include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
+#include "opentelemetry/ext/zpages/tracez_processor.h"
+#include "opentelemetry/ext/zpages/tracez_http_server.h"
 
-#include "opentelemetry/sdk/trace/tracer_provider.h"
 #include "opentelemetry/trace/provider.h"
+#include "opentelemetry/sdk/trace/tracer_provider.h"
 #include "opentelemetry/nostd/shared_ptr.h"
 
 class zPages {
  public:
   zPages() {
-    processor_ = std::make_shared<TracezSpanProcessor>();
+    processor_ = std::make_shared<opentelemetry::ext::zpages::TracezSpanProcessor>();
 
     // Set the global trace provider for a user to grab
     provider_ = opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
@@ -31,7 +32,7 @@ class zPages {
     auto aggregator = std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator>(
         new opentelemetry::ext::zpages::TracezDataAggregator(processor_));
 
-    ext::zpages::zPagesHttpServer server(std::move(aggregator));
+    opentelemetry::ext::zpages::TracezHttpServer server(std::move(aggregator));
     server.start();
 
     // Keeps zPages server up indefinitely
@@ -42,7 +43,7 @@ class zPages {
 
   std::thread server_thread_;
   std::mutex mtx;
-  std::shared_ptr<TracezSpanProcessor> processor_;
+  std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor> processor_;
   opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider> provider_;
 };
 

@@ -1,6 +1,4 @@
 #pragma once
-#ifndef ZPAGES_SERVER
-#define ZPAGES_SERVER
 
 #include <algorithm>
 #include <fstream>
@@ -10,25 +8,23 @@
 #include <unordered_map>
 #include <vector>
 
-#define HAVE_HTTP_DEBUG
-#define HAVE_CONSOLE_LOG
+#include "opentelemetry/ext/http/server/HttpServer.h"
 
-#include "opentelemetry/ext/zpages/tracez_processor.h"
-#include "opentelemetry/ext/zpages/tracez_handler.h"
-#include "opentelemetry/sdk/trace/recordable.h"
-#include "opentelemetry/sdk/trace/tracer.h"
-
-
-using namespace opentelemetry::sdk::trace;
-using namespace opentelemetry::ext::zpages;
-
-namespace ext
-{
-namespace zpages
-{
+OPENTELEMETRY_BEGIN_NAMESPACE
+namespace ext {
+namespace zpages {
 
 class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
  public:
+  zPagesHttpServer() //: HttpServer(),
+          {};
+ 
+  void InitializeFileEndpoint(zPagesHttpServer& server) {
+    server["/"] = ServeFile;
+  }
+
+ private:
+
   bool FileGetSuccess (std::string filename, std::vector<char>& result) {
     #ifdef _WIN32
     std::replace(filename.begin(), filename.end(), '/', '\\');
@@ -100,24 +96,6 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     return 404;
   }};
 
-  void InitializeTracezEndpoint(zPagesHttpServer& server) {
-    server[tracez_handler_->GetEndpoint()] = tracez_handler_->Serve;
-    server["/"] = ServeFile;
-  }
-
-  zPagesHttpServer(std::unique_ptr<TracezDataAggregator> &&aggregator,
-                   std::string serverHost = "localhost", int port = 30000) : HttpServer() {
-    std::ostringstream os;
-    os << serverHost << ":" << port;
-    setServerName(os.str());
-    addListeningPort(port);
-
-    tracez_handler_ = std::unique_ptr<TracezHandler>(new TracezHandler(std::move(aggregator)));
-    InitializeTracezEndpoint(*this);
-  };
-
-
- private:
     const std::unordered_map<std::string, std::string> mime_types_ = {
       {"css",  "text/css"},
       {"png",  "image/png"},
@@ -129,11 +107,9 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
       {"jpg",  "image/jpeg"},
       {"jpeg", "image/jpeg"},
     };
-    std::unique_ptr<TracezHandler> tracez_handler_;
 
 };
 
 } // namespace zpages
 } // namespace ext
-
-#endif // ZPAGES_SERVER
+OPENTELEMETRY_END_NAMESPACE

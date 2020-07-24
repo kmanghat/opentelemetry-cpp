@@ -1,17 +1,15 @@
-#include "opentelemetry/ext/zpages/tracez_handler.h"
-
-using json = nlohmann::json;
+#include "opentelemetry/ext/zpages/tracez_http_server.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
 
-  void TracezHandler::UpdateAggregations() {
+  void TracezHttpServer::UpdateAggregations() {
     aggregated_data_ = data_aggregator_->GetAggregatedTracezData();
   }
 
   //
-  json TracezHandler::GetAggregations() {
+  json TracezHttpServer::GetAggregations() {
     UpdateAggregations();
     auto temp = json::array();
     for(const auto &aggregation_group: aggregated_data_){
@@ -31,7 +29,7 @@ namespace zpages {
     return temp;
   }
 
-  json TracezHandler::GetRunningSpansJSON(const std::string& name) {
+  json TracezHttpServer::GetRunningSpansJSON(const std::string& name) {
     auto temp = json::array();
     auto grouping = aggregated_data_.find(name);
 
@@ -50,7 +48,7 @@ namespace zpages {
     return temp;
   }//HTTP_SERVER_NS
 
-  json TracezHandler::GetErrorSpansJSON(const std::string& name) {
+  json TracezHttpServer::GetErrorSpansJSON(const std::string& name) {
     auto temp = json::array();
 
     if(aggregated_data_.find(name) != aggregated_data_.end()){
@@ -68,7 +66,7 @@ namespace zpages {
     return temp;
   }
 
-  json TracezHandler::GetLatencySpansJSON(const std::string& name, int latency_bucket){
+  json TracezHttpServer::GetLatencySpansJSON(const std::string& name, int latency_bucket){
     auto temp = json::array();
 
     if(aggregated_data_.find(name) != aggregated_data_.end()){
@@ -87,6 +85,7 @@ namespace zpages {
     return temp;
   }
 
-}  // namespace zpages
-}  // namespace ext
+
+} // namespace zpages
+} // namespace ext
 OPENTELEMETRY_END_NAMESPACE
