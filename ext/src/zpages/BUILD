@@ -27,18 +27,3 @@ cc_library(
     ],
 )
 
-cc_binary(
-    name = "zpages_example",
-    srcs = [
-        "zpages_example.cc"
-    ],
-    linkopts = select({
-        "//bazel:windows": [],
-        "//conditions:default": ["-pthread"],
-    }),
-    deps = [
-        "//ext:headers",
-        "//sdk/src/trace",
-        "//ext/src/zpages",
-    ],
-)

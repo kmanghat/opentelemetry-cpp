@@ -116,6 +116,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     InitializeTracezEndpoint(*this);
   };
 
+
  private:
     const std::unordered_map<std::string, std::string> mime_types_ = {
       {"css",  "text/css"},
