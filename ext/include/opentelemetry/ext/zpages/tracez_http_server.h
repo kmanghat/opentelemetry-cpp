@@ -20,20 +20,17 @@ namespace zpages {
 
 class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
  public:
-  TracezHttpServer(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator,
-                   std::string serverHost = "localhost", int port = 30000) : //HttpServer(),
-          data_aggregator_(std::move(aggregator)) {
-    std::ostringstream os;
-    os << serverHost << ":" << port;
-    setServerName(os.str());
-    addListeningPort(port);
-
-    InitializeFileEndpoint(*this);
-    InitializeTracezEndpoint(*this);
-  };
-
   // Construct the handler by taking ownership of the aggregator, whose data is
   // used to send data to the frontend
+  TracezHttpServer(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator,
+                   std::string serverHost = "localhost", int port = 30000) :
+                    opentelemetry::ext::zpages::zPagesHttpServer(serverHost, port),
+          		data_aggregator_(std::move(aggregator)) {
+    
+    InitializeTracezEndpoint(*this);
+    InitializeFileEndpoint(*this);
+  };
+
 
   // Calls the data aggregator to update the stored aggregation Data
   void UpdateAggregations();
@@ -47,25 +44,19 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
 
   json GetErrorSpansJSON(const std::string& name);
 
-
   // Returns a JSON object which maps all the stored aggregations from their
   // names to their counts for each bucket, first updating the stored data
   json GetAggregations();
 
 
-
  private:
   void InitializeTracezEndpoint(TracezHttpServer& server) {
-    server[GetEndpoint()] = Serve;
+    server[endpoint_] = Serve;
   }
-
-  std::string GetEndpoint() {
-    return endpoint_;
-  }
-
+ 
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
-    resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "application/json";
+    resp.headers[testing::CONTENT_TYPE] = "application/json";
     if (StartsWith(req.uri)) {
       std::string query = GetSuffix(req.uri);
       if (StartsWith(query, "latency")) {

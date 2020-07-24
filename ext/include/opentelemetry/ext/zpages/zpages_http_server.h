@@ -16,15 +16,18 @@ namespace zpages {
 
 class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
  public:
-  zPagesHttpServer() //: HttpServer(),
-          {};
+  zPagesHttpServer(std::string serverHost = "localhost", int port = 30000) : HttpServer() {
+    std::ostringstream os;
+    os << serverHost << ":" << port;
+    setServerName(os.str());
+    addListeningPort(port);
+  };
  
   void InitializeFileEndpoint(zPagesHttpServer& server) {
     server["/"] = ServeFile;
   }
 
  private:
-
   bool FileGetSuccess (std::string filename, std::vector<char>& result) {
     #ifdef _WIN32
     std::replace(filename.begin(), filename.end(), '/', '\\');
