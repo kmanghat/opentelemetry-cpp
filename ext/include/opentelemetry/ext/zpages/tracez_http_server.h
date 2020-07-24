@@ -18,7 +18,7 @@ OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
 
-class TracezHttpServer : public ext::zpages::zPagesHttpServer {
+class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
  public:
   TracezHttpServer(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator,
                    std::string serverHost = "localhost", int port = 30000) : //HttpServer(),
