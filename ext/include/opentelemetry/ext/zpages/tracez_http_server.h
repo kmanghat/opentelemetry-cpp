@@ -7,6 +7,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#define HAVE_HTTP_DEBUG
+#define HAVE_CONSOLE_LOG
 
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
@@ -31,6 +33,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
                    std::string host = "localhost", int port = 30000) :
                     opentelemetry::ext::zpages::zPagesHttpServer(host, port),
           		data_aggregator_(std::move(aggregator)) {
+    std::cout << "YEET";
     InitializeTracezEndpoint(*this);
     InitializeFileEndpoint(*this);
   };
@@ -45,7 +48,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    * Returns a JSON object representing the currently stored sampled running spans' data,
    * only grabbing the fields needed for the frontend
    * @param name of the span group whose running data we want
-   */ 
+   */
   json GetRunningSpansJSON(const std::string& name);
 
   /*
@@ -53,20 +56,20 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    * a given bucket, only grabbing the fields needed for the frontend
    * @param name of the span group whose latency data we want
    * @param index of which latency bucket to grab from
-   */ 
+   */
   json GetLatencySpansJSON(const std::string& name, int latency_bucket);
 
   /*
    * Returns a JSON object representing the currently stored sampled error spans' data, only
    * grabbing the fields needed for the frontend
    * @param name of the span group whose error data we want
-   */ 
+   */
   json GetErrorSpansJSON(const std::string& name);
   
   /*
    * Returns a JSON object, which maps all the stored aggregations from their corresponding 
    * names to their counts for each bucket, first updating the stored data
-   */ 
+   */
   json GetAggregations();
 
 
@@ -74,16 +77,18 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
   /*
    * Set the HTTP server to use the "Serve" callback to send the appropriate data when queried
    * @param server should be an instance of this object
-   */ 
+   */
   void InitializeTracezEndpoint(TracezHttpServer& server) {
+    std::cout << "cool";
     server[endpoint_] = Serve;
   }
   
   /*
-   * Sets the response object with the TraceZ aggregation data based on the sent in request
+   * Sets the response object with the TraceZ aggregation data based on the request endpoint
    * @param req is the HTTP request, which we use to figure out the response to send
-   * @param resp is the HTTP response we want to send to the frontend
-   */ 
+   * @param resp is the HTTP response we want to send to the frontend, either webpage or TraceZ
+   * aggregation data 
+   */
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
     resp.headers[testing::CONTENT_TYPE] = "application/json";
