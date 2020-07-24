@@ -46,8 +46,8 @@ namespace zpages {
       }
     }
     return temp;
-  }//HTTP_SERVER_NS
-
+  }
+ 
   json TracezHttpServer::GetErrorSpansJSON(const std::string& name) {
     auto temp = json::array();
 
