@@ -7,8 +7,6 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#define HAVE_HTTP_DEBUG
-#define HAVE_CONSOLE_LOG
 
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
@@ -91,6 +89,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    */
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
+    std::lock_guard<std::mutex> lock(mtx_);
     resp.headers[testing::CONTENT_TYPE] = "application/json";
 
     std::string query = GetQuery(req.uri);
@@ -161,6 +160,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
   const std::string endpoint_ = "/tracez/get";
   std::map<std::string, opentelemetry::ext::zpages::TracezData> aggregated_data_;
   std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> data_aggregator_;
+  mutable std::mutex mtx_;
 
 };
 

@@ -107,7 +107,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     auto f = GetFileName(req.uri);
     auto filename = f.c_str() + 1;
 
-    std::vector<char> content; // HTTP_SERVER_NS
+    std::vector<char> content;
     if (FileGetSuccess(filename, content)) {
         resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = GetMimeContentType(filename);
         resp.body = std::string(content.data(), content.size());
@@ -138,6 +138,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
       {"jpg",  "image/jpeg"},
       {"jpeg", "image/jpeg"},
     };
+    mutable std::mutex mtx_;
 
 };
 

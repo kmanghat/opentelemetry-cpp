@@ -10,8 +10,10 @@ namespace zpages {
 
   //
   json TracezHttpServer::GetAggregations() {
+    //std::lock_guard<std::mutex> lock(mtx_);
     UpdateAggregations();
     auto temp = json::array();
+
     for(const auto &aggregation_group: aggregated_data_){
       const auto &buckets = aggregation_group.second;
       const auto &complete_ok_counts = buckets.completed_span_count_per_latency_bucket;
@@ -31,6 +33,8 @@ namespace zpages {
 
   json TracezHttpServer::GetRunningSpansJSON(const std::string& name) {
     auto temp = json::array();
+
+    //std::lock_guard<std::mutex> lock(mtx_);
     auto grouping = aggregated_data_.find(name);
 
     if (grouping != aggregated_data_.end()) {
@@ -51,8 +55,11 @@ namespace zpages {
   json TracezHttpServer::GetErrorSpansJSON(const std::string& name) {
     auto temp = json::array();
 
-    if(aggregated_data_.find(name) != aggregated_data_.end()){
-      const auto &error_samples = aggregated_data_[name].sample_error_spans;
+    //std::lock_guard<std::mutex> lock(mtx_);
+    auto grouping = aggregated_data_.find(name);
+
+    if(grouping != aggregated_data_.end()){
+      const auto &error_samples = grouping->second.sample_error_spans;
       for(const auto &error_sample : error_samples){
         temp.push_back({
           {"spanid", error_sample.span_id},
@@ -69,8 +76,11 @@ namespace zpages {
   json TracezHttpServer::GetLatencySpansJSON(const std::string& name, int latency_bucket){
     auto temp = json::array();
 
-    if(aggregated_data_.find(name) != aggregated_data_.end()){
-      const auto &latency_samples = aggregated_data_[name].sample_latency_spans[latency_bucket];
+    //std::lock_guard<std::mutex> lock(mtx_);
+    auto grouping = aggregated_data_.find(name);
+
+    if(grouping != aggregated_data_.end()){
+      const auto &latency_samples = grouping->second.sample_latency_spans[latency_bucket];
       for(const auto &latency_sample : latency_samples){
         temp.push_back({
           {"spanid", latency_sample.span_id},
