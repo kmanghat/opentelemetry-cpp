@@ -44,7 +44,6 @@ namespace zpages {
           {"spanid", sample.span_id},
           {"parentid", sample.parent_id},
           {"traceid", sample.trace_id},
-          {"description", sample.description},
           {"start", sample.start_time},
         });
       }
@@ -65,7 +64,6 @@ namespace zpages {
           {"spanid", error_sample.span_id},
           {"parentid", error_sample.parent_id},
           {"traceid", error_sample.trace_id},
-          {"description", error_sample.description},
           {"start", error_sample.start_time},
         });
       }
@@ -86,7 +84,6 @@ namespace zpages {
           {"spanid", latency_sample.span_id},
           {"parentid", latency_sample.parent_id},
           {"traceid", latency_sample.trace_id},
-          {"description", latency_sample.description},
           {"start", latency_sample.start_time},
           {"duration", latency_sample.duration},
         });
