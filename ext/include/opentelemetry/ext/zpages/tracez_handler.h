@@ -60,6 +60,7 @@ class TracezHandler {
           {"traceid", error_sample.trace_id},
           {"description", error_sample.description},
           {"start", error_sample.start_time},
+          {"status","error"},
         });
       }
     }
