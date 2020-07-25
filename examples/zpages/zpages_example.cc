@@ -44,9 +44,10 @@ int main(int argc, char* argv[]) {
       tracer->StartSpan(span_name,start)->End(end);
     } else {
       tracer->StartSpan(span_name)
-      ->SetStatus(opentelemetry::trace::CanonicalCode::CANCELLED,
+      ->SetStatus(opentelemetry::trace::CanonicalCode::OUT_OF_RANGE,
                   "span cancelled");
     }
+    std::cout << "\n";
     
   }
   std::cout << "Presss <ENTER> to stop...\n";

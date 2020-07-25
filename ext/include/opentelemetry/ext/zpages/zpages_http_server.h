@@ -9,8 +9,8 @@
 #include <unordered_map>
 
 
-#define HAVE_HTTP_DEBUG
-#define HAVE_CONSOLE_LOG
+//#define HAVE_HTTP_DEBUG
+//#define HAVE_CONSOLE_LOG
 
 #include "opentelemetry/ext/http/server/HttpServer.h"
 #include "opentelemetry/ext/zpages/tracez_handler.h"

@@ -7,6 +7,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <array>
 
 #include "nlohmann/json.hpp"
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
@@ -21,6 +22,26 @@ namespace ext
 namespace zpages
 {
 
+/** Convinient data structure to convert status code enum to string **/
+const std::array<std::string,17>statusCodesDescriptions = {
+  "OK",
+  "CANCELLED",
+  "UNKNOWN",
+  "INVALID_ARGUMENT",
+  "DEADLINE_EXCEEDED",
+  "NOT_FOUND",
+  "ALREADY_EXISTS",
+  "PERMISSION_DENIED",
+  "RESOURCE_EXHAUSTED",
+  "FAILED_PRECONDITION",
+  "ABORTED",
+  "OUT_OF_RANGE",
+  "UNIMPLEMENTED",
+  "INTERNAL",
+  "UNAVAILABLE",
+  "DATA_LOSS",
+  "UNAUTHENTICATED"
+};
 
 class TracezHandler {
  public:
@@ -60,7 +81,7 @@ class TracezHandler {
           {"traceid", error_sample.trace_id},
           {"description", error_sample.description},
           {"start", error_sample.start_time},
-          {"status","error"},
+          {"status",statusCodesDescriptions[error_sample.status_code]},
         });
       }
     }
