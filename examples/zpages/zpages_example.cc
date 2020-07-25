@@ -48,7 +48,6 @@ int main(int argc, char* argv[]) {
                   "span cancelled");
     }
     std::cout << "\n";
-    
   }
   std::cout << "Presss <ENTER> to stop...\n";
   std::cin.get();
