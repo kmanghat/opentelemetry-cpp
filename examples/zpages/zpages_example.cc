@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   std::vector<nostd::unique_ptr<Span>> running_span_container;
   while (1) {
     std::string span_name;
-    std::cout << "Enter span name: ";
+    std::cout << "Enter span name or CTRL C to exit: ";
     std::cin >> span_name;
     
     char span_type;
@@ -43,9 +43,16 @@ int main(int argc, char* argv[]) {
       end.end_steady_time = SteadyTimestamp(nanoseconds(end_time));
       tracer->StartSpan(span_name,start)->End(end);
     } else {
-      tracer->StartSpan(span_name)
-      ->SetStatus(opentelemetry::trace::CanonicalCode::OUT_OF_RANGE,
-                  "span cancelled");
+      std::string description;
+      int error_code = 0;
+      std::cout << "Enter an error code (integer between 1-16): ";
+      std::cin >> error_code;
+      if(error_code < 1 || error_code > 16) error_code = 0;
+      std::cout << "Enter a span description: ";
+      std::cin.get();
+      getline(std::cin,description);
+      tracer->StartSpan(span_name)->SetStatus((opentelemetry::trace::CanonicalCode)error_code,
+                  description);
     }
     std::cout << "\n";
   }
