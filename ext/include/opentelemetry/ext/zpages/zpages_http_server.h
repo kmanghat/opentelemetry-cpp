@@ -17,7 +17,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
  protected:
   /*
    * Construct the server by initializing the endpoint for serving static files, which show up on the
-   * web if the user is on the given host:port. Static iles can be seen relative to the folder where the
+   * web if the user is on the given host:port. Static files can be seen relative to the folder where the
    * executable was ran.
    * @param host is the host where the TraceZ webpages will be displayed
    * @param port is the port where the TraceZ webpages will be displayed

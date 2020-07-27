@@ -12,7 +12,7 @@
 
  /*
   * Wrapper class that allows users to use zPages by calling this class constructor. Currently only
-  * has TraceZ, but other types of zPages can be adde din the future
+  * has TraceZ, but other types of zPages can be added in the future
   */
 class zPages {
  public:
