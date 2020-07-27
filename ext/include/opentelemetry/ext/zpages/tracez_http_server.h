@@ -88,7 +88,6 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    */
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
-    std::lock_guard<std::mutex> lock(mtx_);
     resp.headers[testing::CONTENT_TYPE] = "application/json";
 
     std::string query = GetQuery(req.uri);
