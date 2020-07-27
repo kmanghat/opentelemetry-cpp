@@ -8,7 +8,6 @@ namespace zpages {
     aggregated_data_ = data_aggregator_->GetAggregatedTracezData();
   }
 
-  //
   json TracezHttpServer::GetAggregations() {
     //std::lock_guard<std::mutex> lock(mtx_);
     UpdateAggregations();

@@ -15,28 +15,75 @@ namespace ext {
 namespace zpages {
 
 class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
- public:
+ protected:
   /*
    * Construct the server by initializing the endpoint for serving static files, which show up on the
    * web if the user is on the given host:port. Static iles can be seen relative to the folder where the
    * executable was ran.
-   * @param host is the host where the TraceZ webpages will be displayed, default being localhost
-   * @param port is the port where the TraceZ webpages will be displayed, default being 30000
+   * @param host is the host where the TraceZ webpages will be displayed
+   * @param port is the port where the TraceZ webpages will be displayed
+   * @param endpoint is where this specific zPage will server files
    */
-  zPagesHttpServer(std::string serverHost = "localhost", int port = 30000) : HttpServer() {
+  zPagesHttpServer(const std::string& endpoint, std::string host, int port) : HttpServer(), endpoint_(endpoint) {
     std::ostringstream os;
-    os << serverHost << ":" << port;
+    os << host << ":" << port;
     setServerName(os.str());
     addListeningPort(port);
   };
- 
+
   /*
    * Set the HTTP server to serve static files from the root of host:port
    * @param server should be an instance of this object
    */
   void InitializeFileEndpoint(zPagesHttpServer& server) {
-    server["/"] = ServeFile;
+    server[root_endpt_] = ServeFile;
   }
+  
+    /*
+   * Helper function tat returns query information by isolating it from the base endpoint
+   */
+  std::string GetQuery(const std::string& uri) {
+    if (endpoint_.length() + 1 > uri.length()) return uri;
+    return uri.substr(endpoint_.length() + 1);
+  }
+
+  /*
+   * Helper that returns whether a str starts with pre
+   * @str is the string we're checking
+   * @pre is the prefix we're checking against
+   */
+  bool StartsWith(const std::string& str, std::string pre) {
+    return (pre.length() > str.length())
+        ? false
+        : str.substr(0, pre.length()) == pre;
+  }
+
+  /*
+   * Helper that returns whether str starts with endpoint
+   */
+  bool IsEndpoint(const std::string& str) {
+    return StartsWith(str, endpoint_);
+  }
+
+  /*
+   * Helper that returns the remaining string after the leftmost backslash
+   */
+  std::string GetAfterSlash(const std::string& str) {
+    const auto& backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return "";
+    return str.substr(backslash + 1);
+  }
+
+  /*
+   * Helper that returns the remaining string after the leftmost backslash
+   */
+  std::string GetBeforeSlash(const std::string& str) {
+    const auto& backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return str;
+    return str.substr(0, backslash);
+  }
+  
+  const std::string endpoint_;
 
  private:
   /*
@@ -139,6 +186,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
       {"jpeg", "image/jpeg"},
     };
     mutable std::mutex mtx_;
+    const std::string root_endpt_ = "/";
 
 };
 
