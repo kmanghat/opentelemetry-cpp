@@ -28,7 +28,7 @@ class zPages {
     tracez_server_thread_.detach();
 
     // Ensure zPages has time to setup, so the program doesn't crash
-    std::this_thread::sleep_for(SETUP_TIME);
+    std::this_thread::sleep_for(setup_time_);
   }
 
  private:
@@ -43,7 +43,7 @@ class zPages {
     tracez_server.start();
 
     // Keeps zPages server up indefinitely
-    while (1) std::this_thread::sleep_for(LONG_TIME);
+    while (1) std::this_thread::sleep_for(long_time_);
     tracez_server.stop();
   }
 
@@ -51,7 +51,7 @@ class zPages {
   std::thread tracez_server_thread_;
   std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor> tracez_processor_;
   opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider> tracez_provider_;
-  const std::chrono::duration<unsigned int, std::nano> SETUP_TIME = std::chrono::nanoseconds(100);
-  const std::chrono::duration<unsigned int, std::ratio<3600>> LONG_TIME = std::chrono::hours(9999);
+  const std::chrono::duration<unsigned int, std::nano> setup_time_ = std::chrono::nanoseconds(100);
+  const std::chrono::duration<unsigned int, std::ratio<3600>> long_time_ = std::chrono::hours(9999);
 };
 

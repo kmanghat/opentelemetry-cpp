@@ -9,7 +9,6 @@ namespace zpages {
   }
 
   json TracezHttpServer::GetAggregations() {
-    //std::lock_guard<std::mutex> lock(mtx_);
     UpdateAggregations();
     auto counts = json::array();
 
@@ -35,7 +34,6 @@ namespace zpages {
   json TracezHttpServer::GetRunningSpansJSON(const std::string& name) {
     auto running_json = json::array();
 
-    //std::lock_guard<std::mutex> lock(mtx_);
     auto grouping = aggregated_data_.find(name);
 
     if (grouping != aggregated_data_.end()) {
@@ -45,7 +43,6 @@ namespace zpages {
           {"spanid", sample.span_id},
           {"parentid", sample.parent_id},
           {"traceid", sample.trace_id},
-          {"description", sample.description},
           {"start", sample.start_time},
         });
       }
@@ -56,7 +53,6 @@ namespace zpages {
   json TracezHttpServer::GetErrorSpansJSON(const std::string& name) {
     auto error_json = json::array();
 
-    //std::lock_guard<std::mutex> lock(mtx_);
     auto grouping = aggregated_data_.find(name);
 
     if(grouping != aggregated_data_.end()){
@@ -66,8 +62,8 @@ namespace zpages {
           {"spanid", error_sample.span_id},
           {"parentid", error_sample.parent_id},
           {"traceid", error_sample.trace_id},
-          {"description", error_sample.description},
           {"start", error_sample.start_time},
+          {"status", error_sample.status_code}
         });
       }
     }
@@ -77,7 +73,6 @@ namespace zpages {
   json TracezHttpServer::GetLatencySpansJSON(const std::string& name, const int& latency_range_index){
     auto latency_json = json::array();
 
-    //std::lock_guard<std::mutex> lock(mtx_);
     auto grouping = aggregated_data_.find(name);
 
     if(grouping != aggregated_data_.end()){
@@ -87,7 +82,6 @@ namespace zpages {
           {"spanid", latency_sample.span_id},
           {"parentid", latency_sample.parent_id},
           {"traceid", latency_sample.trace_id},
-          {"description", latency_sample.description},
           {"start", latency_sample.start_time},
           {"duration", latency_sample.duration},
         });

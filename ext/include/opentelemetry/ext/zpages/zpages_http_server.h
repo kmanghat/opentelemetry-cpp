@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -49,8 +48,8 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
   /*
    * Helper that returns whether a str starts with pre
-   * @str is the string we're checking
-   * @pre is the prefix we're checking against
+   * @param str is the string we're checking
+   * @param pre is the prefix we're checking against
    */
   bool StartsWith(const std::string& str, std::string pre) {
     return (pre.length() > str.length())
@@ -59,14 +58,8 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
   }
 
   /*
-   * Helper that returns whether str starts with endpoint
-   */
-  bool IsEndpoint(const std::string& str) {
-    return StartsWith(str, endpoint_);
-  }
-
-  /*
    * Helper that returns the remaining string after the leftmost backslash
+   * @param str is the string we're extracting from
    */
   std::string GetAfterSlash(const std::string& str) {
     const auto& backslash = str.find("/");
@@ -76,6 +69,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
   /*
    * Helper that returns the remaining string after the leftmost backslash
+   * @param str is the string we're extracting from
    */
   std::string GetBeforeSlash(const std::string& str) {
     const auto& backslash = str.find("/");
@@ -116,7 +110,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
   /*
    * Returns the extension of a file
    * @param name of the file
-   * @return file extension type under HTTP protocol
+   * @returns file extension type under HTTP protocol
    */
   std::string GetMimeContentType(std::string filename) {
     std::string file_ext = filename.substr(filename.find_last_of(".") + 1);
@@ -185,7 +179,6 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
       {"jpg",  "image/jpeg"},
       {"jpeg", "image/jpeg"},
     };
-    mutable std::mutex mtx_;
     const std::string root_endpt_ = "/";
 
 };

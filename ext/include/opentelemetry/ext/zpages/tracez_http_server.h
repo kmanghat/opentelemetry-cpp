@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -119,7 +118,6 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
 
   std::map<std::string, opentelemetry::ext::zpages::TracezData> aggregated_data_;
   std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> data_aggregator_;
-  mutable std::mutex mtx_;
 
 };
 
