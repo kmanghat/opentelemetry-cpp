@@ -1,35 +1,93 @@
 #pragma once
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <string>
-#include <vector>
-#include <algorithm>
 #include <unordered_map>
-
-
-//#define HAVE_HTTP_DEBUG
-//#define HAVE_CONSOLE_LOG
+#include <vector>
 
 #include "opentelemetry/ext/http/server/HttpServer.h"
-#include "opentelemetry/ext/zpages/tracez_handler.h"
-#include "opentelemetry/ext/zpages/tracez_processor.h"
-#include "opentelemetry/sdk/trace/recordable.h"
-#include "opentelemetry/sdk/trace/tracer.h"
 
-
-using namespace opentelemetry::sdk::trace;
-using namespace opentelemetry::ext::zpages;
-
-namespace ext
-{
-namespace zpages
-{
-
+OPENTELEMETRY_BEGIN_NAMESPACE
+namespace ext {
+namespace zpages {
 
 class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
- public:
+ protected:
+  /*
+   * Construct the server by initializing the endpoint for serving static files, which show up on the
+   * web if the user is on the given host:port. Static files can be seen relative to the folder where the
+   * executable was ran.
+   * @param host is the host where the TraceZ webpages will be displayed
+   * @param port is the port where the TraceZ webpages will be displayed
+   * @param endpoint is where this specific zPage will server files
+   */
+  zPagesHttpServer(const std::string& endpoint, std::string host, int port) : HttpServer(), endpoint_(endpoint) {
+    std::ostringstream os;
+    os << host << ":" << port;
+    setServerName(os.str());
+    addListeningPort(port);
+  };
+
+  /*
+   * Set the HTTP server to serve static files from the root of host:port
+   * @param server should be an instance of this object
+   */
+  void InitializeFileEndpoint(zPagesHttpServer& server) {
+    server[root_endpt_] = ServeFile;
+  }
+  
+    /*
+   * Helper function tat returns query information by isolating it from the base endpoint
+   */
+  std::string GetQuery(const std::string& uri) {
+    if (endpoint_.length() + 1 > uri.length()) return uri;
+    return uri.substr(endpoint_.length() + 1);
+  }
+
+  /*
+   * Helper that returns whether a str starts with pre
+   * @param str is the string we're checking
+   * @param pre is the prefix we're checking against
+   */
+  bool StartsWith(const std::string& str, std::string pre) {
+    return (pre.length() > str.length())
+        ? false
+        : str.substr(0, pre.length()) == pre;
+  }
+
+  /*
+   * Helper that returns the remaining string after the leftmost backslash
+   * @param str is the string we're extracting from
+   */
+  std::string GetAfterSlash(const std::string& str) {
+    const auto& backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return "";
+    return str.substr(backslash + 1);
+  }
+
+  /*
+   * Helper that returns the remaining string after the leftmost backslash
+   * @param str is the string we're extracting from
+   */
+  std::string GetBeforeSlash(const std::string& str) {
+    const auto& backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return str;
+    return str.substr(0, backslash);
+  }
+  
+  const std::string endpoint_;
+
+ private:
+  /*
+   * Return whether a file is found whose location is searched for relative to where
+   * the executable was triggered. If the file is valid, fill result with the file data/information
+   * required to display it on a webpage
+   * @param name of the file to look for,
+   * @param resulting file information, necessary for displaying them on a webpage
+   * @returns whether a file was found and result filled with display information
+   */
   bool FileGetSuccess (std::string filename, std::vector<char>& result) {
     #ifdef _WIN32
     std::replace(filename.begin(), filename.end(), '/', '\\');
@@ -49,34 +107,41 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     return false;
   };
 
+  /*
+   * Returns the extension of a file
+   * @param name of the file
+   * @returns file extension type under HTTP protocol
+   */
   std::string GetMimeContentType(std::string filename) {
     std::string file_ext = filename.substr(filename.find_last_of(".") + 1);
     auto file_type = mime_types_.find(file_ext);
     return (file_type != mime_types_.end())
         ? file_type->second
-        : testing::CONTENT_TYPE_TEXT;
+        : HTTP_SERVER_NS::CONTENT_TYPE_TEXT;
   };
 
-  // For serving index.html files
-  bool IsExtension(const std::string& s) {
-    for (auto& c : s) {
-      if (c == '.') return true;
-    }
-    return false;
-  }
-
-  // Ensure that file, file/, file/index.html and
-  // file.png and file.png/ are all served the same
+  /*
+   * Returns the standardized name of a file by removing backslashes, and
+   * assuming index.html is the wanted file if a directory is given
+   * @param name of the file
+   */
   std::string GetFileName(std::string S) {
     if (S.back() == '/') {
       auto temp = S.substr(0, S.size() - 1);
       S = temp;
     }
-    if (!IsExtension(S)) S += "/index.html";
+    // If filename appears to be a directory, serve the hypothetical index.html file there
+    if (S.find(".") == std::string::npos) S += "/index.html";
 
     return S;
   }
 
+  /*
+   * Sets the response object with the correct file data based on the requested file address,
+   * or return 404 error if a file isn't found
+   * @param req is the HTTP request, which we use to figure out the response to send
+   * @param resp is the HTTP response we want to send to the frontend, including file data
+   */
   HTTP_SERVER_NS::HttpRequestCallback ServeFile{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                 HTTP_SERVER_NS::HttpResponse& resp) {
     LOG_INFO("File: %s\n", req.uri.c_str());
@@ -85,7 +150,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
 
     std::vector<char> content;
     if (FileGetSuccess(filename, content)) {
-        resp.headers[testing::CONTENT_TYPE] = GetMimeContentType(filename);
+        resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = GetMimeContentType(filename);
         resp.body = std::string(content.data(), content.size());
         resp.code = 200;
         resp.message = HTTP_SERVER_NS::HttpServer::getDefaultResponseMessage(resp.code);
@@ -94,33 +159,15 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     // Two additional 'special' return codes possible here:
     // 0    - proceed to next handler
     // -1   - immediately terminate and close connection
-    resp.headers[testing::CONTENT_TYPE] = testing::CONTENT_TYPE_TEXT;
+    resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = HTTP_SERVER_NS::CONTENT_TYPE_TEXT;
     resp.code = 404;
     resp.message = HTTP_SERVER_NS::HttpServer::getDefaultResponseMessage(resp.code);
     resp.body = resp.message;
     return 404;
   }};
 
-  void InitializeTracezEndpoint(zPagesHttpServer& server) {
-    server[tracez_handler_->GetEndpoint()] = tracez_handler_->Serve;
-    server["/"] = ServeFile;
 
-  }
-
-  zPagesHttpServer(std::unique_ptr<TracezDataAggregator> &&aggregator,
-                   std::string serverHost = "localhost", int port = 30000) : HttpServer() {
-    std::ostringstream os;
-    os << serverHost << ":" << port;
-    setServerName(os.str());
-    addListeningPort(port);
-
-    tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
-        new ext::zpages::TracezHandler(std::move(aggregator)));
-    InitializeTracezEndpoint(*this);
-  };
-
-
- private:
+    // Maps file extensions to their HTTP-compatible mime file type 
     const std::unordered_map<std::string, std::string> mime_types_ = {
       {"css",  "text/css"},
       {"png",  "image/png"},
@@ -132,9 +179,10 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
       {"jpg",  "image/jpeg"},
       {"jpeg", "image/jpeg"},
     };
-    std::unique_ptr<ext::zpages::TracezHandler> tracez_handler_;
+    const std::string root_endpt_ = "/";
 
 };
 
 } // namespace zpages
 } // namespace ext
+OPENTELEMETRY_END_NAMESPACE

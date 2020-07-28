@@ -34,9 +34,9 @@
 namespace HTTP_SERVER_NS
 {
 
-const char *CONTENT_TYPE      = "Content-Type";
-const char *CONTENT_TYPE_TEXT = "text/plain";
-const char *CONTENT_TYPE_BIN  = "application/octet-stream";
+constexpr const char *CONTENT_TYPE      = "Content-Type";
+constexpr const char *CONTENT_TYPE_TEXT = "text/plain";
+constexpr const char *CONTENT_TYPE_BIN  = "application/octet-stream";
 
 struct HttpRequest
 {
