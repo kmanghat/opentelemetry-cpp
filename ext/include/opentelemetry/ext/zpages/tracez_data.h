@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <list>
+#include <array>
 #include <string>
 
 #include "opentelemetry/nostd/span.h"
@@ -11,8 +12,9 @@
 #include "opentelemetry/trace/span_id.h"
 #include "opentelemetry/trace/trace_id.h"
 #include "opentelemetry/version.h"
+#include "opentelemetry/ext/zpages/threadsafe_span_data.h"
 
-using opentelemetry::sdk::trace::SpanData;
+using opentelemetry::ext::zpages::ThreadsafeSpanData;
 using opentelemetry::trace::CanonicalCode;
 using opentelemetry::trace::SpanId;
 using opentelemetry::trace::TraceId;
@@ -31,13 +33,13 @@ const int kMaxNumberOfSampleSpans = 5;
 
 /**
  * SampleSpanData is a structure that stores some of the relevant span
- * information for sample spans. The structure copies over data from SpanData
+ * information for sample spans. The structure copies over data from ThreadsafeSpanData
  * and stores it as strings so it can readily be rendered on the frontend or
  * converted to JSON.
- * Defining this structure also eliminates the dependency on SpanData of
+ * Defining this structure also eliminates the dependency on ThreadsafeSpanData of
  * running spans which is owned by span and access to which may cause race
  * conditions.
- * TODO: At this time SpanData that is passed into this struct's constructor
+ * TODO: At this time ThreadsafeSpanData that is passed into this struct's constructor
  * does not have many attributes like span_id etc, so a lot of field's in the
  * struct will be empty.
  */
@@ -47,8 +49,10 @@ struct SampleSpanData {
   std::string trace_id;
   std::string parent_id;
   std::string description;
-  std::string duration;
-  SampleSpanData(SpanData span_data) {
+  unsigned long long int duration;
+  unsigned long long int start_time;
+  unsigned short status_code;
+  SampleSpanData(ThreadsafeSpanData &span_data) {
     span_name = span_data.GetName().data();
     span_id = std::string(
         reinterpret_cast<const char *>(span_data.GetSpanId().Id().data()));
@@ -57,7 +61,9 @@ struct SampleSpanData {
     parent_id = std::string(reinterpret_cast<const char *>(
         span_data.GetParentSpanId().Id().data()));
     description = span_data.GetDescription().data();
-    duration = std::to_string(span_data.GetDuration().count());
+    duration = span_data.GetDuration().count();
+    start_time = span_data.GetStartTime().time_since_epoch().count();
+    status_code = (unsigned short)span_data.GetStatus();
   }
 };
 
