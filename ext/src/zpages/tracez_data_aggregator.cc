@@ -45,7 +45,7 @@ LatencyBoundary TracezDataAggregator::FindLatencyBoundary(ThreadsafeSpanData *sp
 }
 
 void TracezDataAggregator::InsertIntoSampleSpanList(
-    std::list<SampleSpanData> &sample_spans, ThreadsafeSpanData &span_data) {
+    std::list<ThreadsafeSpanData> &sample_spans, ThreadsafeSpanData &span_data) {
   /**
    * Check to see if the sample span list size exceeds the set limit, if it does
    * free up memory and remove the earliest inserted sample before appending
@@ -53,7 +53,7 @@ void TracezDataAggregator::InsertIntoSampleSpanList(
   if (sample_spans.size() == kMaxNumberOfSampleSpans) {
     sample_spans.pop_front();
   }
-  sample_spans.push_back(SampleSpanData(span_data));
+  sample_spans.push_back(ThreadsafeSpanData(span_data));
 }
 
 void TracezDataAggregator::ClearRunningSpanData() {
