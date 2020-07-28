@@ -11,6 +11,9 @@
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
 #include "nlohmann/json.hpp"
 
+#define HAVE_HTTP_DEBUG
+#define HAVE_CONSOLE_LOG
+
 using json = nlohmann::json;
 
 OPENTELEMETRY_BEGIN_NAMESPACE
@@ -28,7 +31,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    */
   TracezHttpServer(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator,
                    std::string host = "localhost", int port = 30000) :
-                   opentelemetry::ext::zpages::zPagesHttpServer("/tracez/get", host, port),
+                   opentelemetry::ext::zpages::zPagesHttpServer("/tracez", host, port),
                    data_aggregator_(std::move(aggregator)) {
     InitializeTracezEndpoint(*this);
     InitializeFileEndpoint(*this);
@@ -88,28 +91,81 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    */
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
-    resp.headers[testing::CONTENT_TYPE] = "application/json";
+    std::string query = GetQuery(req.uri); // tracez
 
-    std::string query = GetQuery(req.uri);
-
-    if (StartsWith(query, "latency")) {
-      auto queried_latency_name = GetAfterSlash(query);
-      auto queried_latency_index = std::stoi(GetBeforeSlash(queried_latency_name));
-      auto queried_name = GetAfterSlash(queried_latency_name);
-      resp.body = GetLatencySpansJSON(queried_name, queried_latency_index).dump();
+    if (StartsWith(query, "get")) {
+      resp.headers[testing::CONTENT_TYPE] = "application/json";
+      query = GetAfterSlash(query);
+      if (StartsWith(query, "latency")) {
+        auto queried_latency_name = GetAfterSlash(query);
+        auto queried_latency_index = std::stoi(GetBeforeSlash(queried_latency_name));
+        auto queried_name = GetAfterSlash(queried_latency_name);
+        resp.body = GetLatencySpansJSON(queried_name, queried_latency_index).dump();
+      }
+      else {
+        auto queried_name = GetAfterSlash(query);
+        if (StartsWith(query, "aggregations")) {
+          resp.body = GetAggregations().dump();
+        }
+        else if (StartsWith(query, "running")) {
+          resp.body = GetRunningSpansJSON(queried_name).dump();
+        }
+        else if (StartsWith(query, "error")) {
+          resp.body = GetErrorSpansJSON(queried_name).dump();
+        }
+        else resp.body = json::array();
+      }
     }
     else {
-      auto queried_name = GetAfterSlash(query);
-      if (StartsWith(query, "aggregations")) {
-        resp.body = GetAggregations().dump();
+      //resp.body = StartsWith(query, "index.html") ? "cool" : " no   ";
+
+
+      if (StartsWith(query, "index.html")) {
+        resp.headers[testing::CONTENT_TYPE] = "text/html";
+      	resp.body = "<!doctype html>"
+		"<html>"
+		"  <head>"
+		"    <title>zPages TraceZ</title>"
+		"    <script src='/tracez/script.js'></script>"
+		"    <link href='/tracez/style.css' rel='stylesheet'>"
+		"  </head>"
+		"  <body>"
+		"    <img src='/images/opentelemetry.png' />"
+		"    <h1>zPages TraceZ</h1>"
+		"    <span  id='top-right'>Last Updated: <span id='lastUpdateTime'></span><br>"
+		"    <button onclick='refreshData()'>Refresh</button></span>"
+		"    <br><br>"
+		"    <div class='table-wrap'>"
+		"      <table id='headers'>"
+		"        <colgroup>"
+		"          <col class='md'>"
+		"          <col class='sm'>"
+		"          <col class='sm'>"
+		"          <col class='lg'>"
+		"        </colgroup>"
+		"        <tr>"
+		"          <th>Span Name</th>"
+		"          <th>Error Samples</th>"
+		"          <th>Running</th>"
+		"          <th>Latency Samples</th>"
+		"        </tr>"
+		"      </table>"
+		"      <table id='overview_table'>"
+		"      </table>"
+		"    </div>"
+		"    <br>"
+		"    <hr>"
+		"    <span id='name_type_detail_table_header'></span>"
+		"    <div class='table-wrap'>"
+		"      <table id='name_type_detail_table'>"
+		"      </table>"
+		"    </div>"
+		"  </body>"
+		"</html>";
       }
-      else if (StartsWith(query, "running")) {
-        resp.body = GetRunningSpansJSON(queried_name).dump();
+      else { resp.headers[testing::CONTENT_TYPE] = "application/json";
+      resp.body = "[]";
       }
-      else if (StartsWith(query, "error")) {
-        resp.body = GetErrorSpansJSON(queried_name).dump();
-      }
-      else resp.body = json::array();
     }
 
     return 200;

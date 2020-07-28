@@ -8,7 +8,8 @@
 #include <vector>
 
 #include "opentelemetry/ext/http/server/HttpServer.h"
-
+#define HAVE_HTTP_DEBUG
+#define HAVE_CONSOLE_LOG
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
