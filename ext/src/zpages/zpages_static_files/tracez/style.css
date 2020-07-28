@@ -6,6 +6,10 @@ body {
   font-size: .9em
 }
 
+h1 {
+  margin: 0;
+}
+
 table {
   font-family: monospace, sans-serif;
   border-collapse: collapse;
@@ -111,6 +115,15 @@ th {
 img {
   width: 50%;
   max-width: 500px;
+}
+
+.subhead-name {
+  color: #4b5fab;
+  text-decoration: underline;
+}
+
+.has-tooltip {
+  text-decoration: underline dotted #f6a81c;
 }
 
 .has-tooltip:hover .tooltip {

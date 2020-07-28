@@ -191,7 +191,7 @@ const getCellContent = (h, span) => {
 
 // Create cell based on what header we want to render
 const getCell = (h, span) => (isArrayCol(h)) ? getArrayCells(h, span)
-  : `<td ${hasCallback(h) /*&& span[h] !== 0*/ ? (`class='click'
+  : `<td ${hasCallback(h) && span[h] !== 0 ? (`class='click'
           onclick="overwriteDetailedTable('${h}', '${span['name']}')"`)
       : ''}>` + `${getCellContent(h, span)}</td>`;
 
@@ -223,7 +223,7 @@ function overwriteTable(group, url_end = '') {
 function updateSubheading(group, name) {
   if (hasSubheading(group)) {
     document.getElementById(getHTML(isLatency(group) ? 'latency' : group) + '_header')
-        .innerHTML = `<h2></span>${name}</span><br>
+        .innerHTML = `<h2><span class='subhead-name'>${name}</span>
             ${(isLatency(group) ? `${latencies[group]} Bucket` : toTitlecase(group))}
             Spans</h2><i>Showing sampled span details (up to 5).
             ${getStatusHTML(group)}</i><br><br>`;
