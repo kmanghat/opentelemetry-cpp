@@ -36,15 +36,18 @@ td, th {
 }
 
 #top-right {
+  text-align: right;
   position: absolute;
   top: 10px;
-  right: 10px
+  right: 10px;
+  text-shadow: .5px .5px .25px #fff;
 }
 
 #top-right button {
   color: #f6a81c;
   border: 2px solid #f6a81c;
-  padding: 8px;
+  padding: 10px;
+  margin: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
   background-color: white;
@@ -119,7 +122,7 @@ img {
   position: absolute;
 }
 
-.tooltip, .tooltip:hover{
+.tooltip, .tooltip:hover {
   background: #ffffffd9;
   padding: 10px;
   z-index: 1000;
