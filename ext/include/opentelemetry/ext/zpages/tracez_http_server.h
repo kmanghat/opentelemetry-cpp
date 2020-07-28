@@ -9,6 +9,9 @@
 
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
 #include "opentelemetry/ext/zpages/zpages_http_server.h"
+#include "opentelemetry/ext/zpages/static/tracez_index.h"
+#include "opentelemetry/ext/zpages/static/tracez_style.h"
+#include "opentelemetry/ext/zpages/static/tracez_script.h"
 #include "nlohmann/json.hpp"
 
 #define HAVE_HTTP_DEBUG
@@ -118,53 +121,20 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
     }
     else {
       //resp.body = StartsWith(query, "index.html") ? "cool" : " no   ";
-
-
-      if (StartsWith(query, "index.html")) {
-        resp.headers[testing::CONTENT_TYPE] = "text/html";
-      	resp.body = "<!doctype html>"
-		"<html>"
-		"  <head>"
-		"    <title>zPages TraceZ</title>"
-		"    <script src='/tracez/script.js'></script>"
-		"    <link href='/tracez/style.css' rel='stylesheet'>"
-		"  </head>"
-		"  <body>"
-		"    <img src='/images/opentelemetry.png' />"
-		"    <h1>zPages TraceZ</h1>"
-		"    <span  id='top-right'>Last Updated: <span id='lastUpdateTime'></span><br>"
-		"    <button onclick='refreshData()'>Refresh</button></span>"
-		"    <br><br>"
-		"    <div class='table-wrap'>"
-		"      <table id='headers'>"
-		"        <colgroup>"
-		"          <col class='md'>"
-		"          <col class='sm'>"
-		"          <col class='sm'>"
-		"          <col class='lg'>"
-		"        </colgroup>"
-		"        <tr>"
-		"          <th>Span Name</th>"
-		"          <th>Error Samples</th>"
-		"          <th>Running</th>"
-		"          <th>Latency Samples</th>"
-		"        </tr>"
-		"      </table>"
-		"      <table id='overview_table'>"
-		"      </table>"
-		"    </div>"
-		"    <br>"
-		"    <hr>"
-		"    <span id='name_type_detail_table_header'></span>"
-		"    <div class='table-wrap'>"
-		"      <table id='name_type_detail_table'>"
-		"      </table>"
-		"    </div>"
-		"  </body>"
-		"</html>";
+      if (StartsWith(query, "script.js")) {
+        resp.headers[testing::CONTENT_TYPE] = "text/javascript";
+      	resp.body = tracez_script;
       }
-      else { resp.headers[testing::CONTENT_TYPE] = "application/json";
-      resp.body = "[]";
+      else if (StartsWith(query, "style.css")) {
+        resp.headers[testing::CONTENT_TYPE] = "text/css";
+      	resp.body = tracez_style;
+      }
+      else if (query == "/tracez" || query.empty() || StartsWith(query, "index.html")) {
+        resp.headers[testing::CONTENT_TYPE] = "text/html";
+      	resp.body = tracez_index;
+      }
+      else { resp.headers[testing::CONTENT_TYPE] = "text/plain";
+      resp.body = query;
       }
     }
 
