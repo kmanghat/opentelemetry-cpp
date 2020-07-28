@@ -6,9 +6,48 @@ const latencies = [
   '>1s', '>10s', '>100s',
 ];
 
+const statusCodeDescriptions = {
+  'OK': 'The operation completed successfully.',
+  'CANCELLED': 'The operation was cancelled (typically by the caller).',
+  'UNKNOWN': `Unknown error. An example of where this error may be returned is if a Status value received
+   	from another address space belongs to an error-space that is not known in this address space.
+   	Also errors raised by APIs that do not return enough error information may be converted to
+   	this error.`,
+  'INVALID_ARGUMENT': `Client specified an invalid argument. Note that this differs from FAILED_PRECONDITION.
+   	INVALID_ARGUMENT indicates arguments that are problematic regardless of the state of the
+   	system (e.g., a malformed file name).`,
+  'DEADLINE_EXCEEDED': `Deadline expired before operation could complete. For operations that change the state of the
+   	system, this error may be returned even if the operation has completed successfully. For
+   	example, a successful response from a server could have been delayed long enough for the
+   	deadline to expire.`,
+  'NOT_FOUND' : 'Some requested entity (e.g., file or directory) was not found.',
+  'ALREADY_EXISTS': 'Some entity that we attempted to create (e.g., file or directory) already exists.',
+  'PERMISSION_DENIED': `The caller does not have permission to execute the specified operation. PERMISSION_DENIED
+   	must not be used for rejections caused by exhausting some resource (use RESOURCE_EXHAUSTED
+   	instead for those errors). PERMISSION_DENIED must not be used if the caller cannot be
+   	identified (use UNAUTHENTICATED instead for those errors).`,
+  'RESOURCE_EXHAUSTED': `Some resource has been exhausted, perhaps a per-user quota, or perhaps the entire file system
+   	is out of space.`,
+  'FAILED_PRECONDITION': `Operation was rejected because the system is not in a state required for the operation's
+   	execution. For example, directory to be deleted may be non-empty, an rmdir operation is
+   	applied to a non-directory, etc.`,
+  'ABORTED': `The operation was aborted, typically due to a concurrency issue like sequencer check
+   	failures, transaction aborts, etc`,
+  'OUT_OF_RANGE': `Operation was attempted past the valid range. E.g., seeking or reading past end of file.`,
+  'UNIMPLEMENTED': 'Operation is not implemented or not supported/enabled in this service.',
+  'INTERNAL': `Internal errors. Means some invariants expected by underlying system has been broken. If you
+	see one of these errors, something is very broken.`,
+  'UNAVAILABLE': `The service is currently unavailable. This is a most likely a transient condition and may be
+   	corrected by retrying with a backoff.`,
+  'DATA_LOSS': 'Unrecoverable data loss or corruption.',
+  'UNAUTHENTICATED': 'The request does not have valid authentication credentials for the operation.',
+};
+
+const details = {'status': statusCodeDescriptions}
+
 // Latency info is returned as an array, so they need to be parsed accordingly
-const getLatencyCell = (span, i, h) => `<td class='click'
-      onclick="overwriteDetailedTable(${i}, '${span['name']}')">${span[h][i]}</td>`;
+const getLatencyCell = (span, i, h) => `<td${span[h][i] === 0 ? '' : ` class='click'
+      onclick="overwriteDetailedTable(${i}, '${span['name']}')"`}>${span[h][i]}</td>`;
 
 // Pretty print a cell with a map
 const getKeyValueCell = (span, i, h) => `<td><pr><code>
@@ -17,7 +56,7 @@ const getKeyValueCell = (span, i, h) => `<td><pr><code>
 
 // Standard categories when checking span details
 const idCols = ['spanid', 'parentid', 'traceid']
-const detailCols = ['description']; // Columns error, running, and latency spans all share
+const detailCols = []; // Columns error, running, and latency spans all share
 const dateCols = ['start']; // Categories to change to date
 const numCols = ['duration']; // Categories to change to num
 const clickCols = ['error', 'running']; // Non-latency clickable cols
@@ -123,17 +162,36 @@ const getArrayCells = (h, span) => span[h].length
   ? (span[h].map((_, i) => arrayCols[h](span, i, h))).join('')
   : 'Empty';
 
-const EmptyContent = () => `<span class='empty'>(not set)</span>`
+const emptyContent = () => `<span class='empty'>(not set)</span>`
+
+const dateStr = nanosec => {
+  const mainDate = new Date(nanosec / 1000000).toLocaleString();
+  let lostPrecision = String(nanosec % 1000000);
+  while (lostPrecision.length < 6) lostPrecision = 0 + lostPrecision;
+  const endingLocation = mainDate.indexOf('M') - 2;
+  return `${mainDate.substr(0, endingLocation)}:${lostPrecision}${mainDate.substr(endingLocation)}`;
+}
+
+const detailCell = (h, span) => {
+  const detailKey = Object.keys(details[h])[span[h]];
+  const detailVal = details[h][detailKey];
+  return `<span class='has-tooltip'>
+    ${detailKey}
+    <span class='tooltip'>${detailVal}</span>
+  </span>`;
+}
 
 // Convert cells to Date strings if needed
 const getCellContent = (h, span) => {
-  if (!isDate(h)) return (span[h] !== '') ? span[h] : EmptyContent();
-  return new Date(span[h] / 1000000).toJSON();
+  if (h in details) return detailCell(h, span);
+  else if (span[h] === '') return emptyContent();
+  else if (!isDate(h)) return span[h];
+  return dateStr(span[h]);
 };
 
 // Create cell based on what header we want to render
 const getCell = (h, span) => (isArrayCol(h)) ? getArrayCells(h, span)
-  : `<td ${hasCallback(h) ? (`class='click'
+  : `<td ${hasCallback(h) /*&& span[h] !== 0*/ ? (`class='click'
           onclick="overwriteDetailedTable('${h}', '${span['name']}')"`)
       : ''}>` + `${getCellContent(h, span)}</td>`;
 
@@ -165,7 +223,7 @@ function overwriteTable(group, url_end = '') {
 function updateSubheading(group, name) {
   if (hasSubheading(group)) {
     document.getElementById(getHTML(isLatency(group) ? 'latency' : group) + '_header')
-        .innerHTML = `<h2>${name}<br>
+        .innerHTML = `<h2></span>${name}</span><br>
             ${(isLatency(group) ? `${latencies[group]} Bucket` : toTitlecase(group))}
             Spans</h2><i>Showing sampled span details (up to 5).
             ${getStatusHTML(group)}</i><br><br>`;

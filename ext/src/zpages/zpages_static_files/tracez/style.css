@@ -109,3 +109,22 @@ img {
   width: 50%;
   max-width: 500px;
 }
+
+.has-tooltip:hover .tooltip {
+  display: block;
+}
+
+.tooltip {
+  display: none;
+  position: absolute;
+}
+
+.tooltip, .tooltip:hover{
+  background: #ffffffd9;
+  padding: 10px;
+  z-index: 1000;
+  color: #252525 !important;
+  border-radius: 10px;
+  margin: 3px 20px 0 0;
+}
+
