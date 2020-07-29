@@ -97,7 +97,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
     std::string query = GetQuery(req.uri); // tracez
 
     if (StartsWith(query, "get")) {
-      resp.headers[testing::CONTENT_TYPE] = "application/json";
+      resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "application/json";
       query = GetAfterSlash(query);
       if (StartsWith(query, "latency")) {
         auto queried_latency_name = GetAfterSlash(query);
@@ -116,25 +116,28 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
         else if (StartsWith(query, "error")) {
           resp.body = GetErrorSpansJSON(queried_name).dump();
         }
-        else resp.body = json::array();
+        else {
+          resp.body = json::array();
+        }
       }
     }
     else {
       //resp.body = StartsWith(query, "index.html") ? "cool" : " no   ";
       if (StartsWith(query, "script.js")) {
-        resp.headers[testing::CONTENT_TYPE] = "text/javascript";
+        resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "text/javascript";
       	resp.body = tracez_script;
       }
       else if (StartsWith(query, "style.css")) {
-        resp.headers[testing::CONTENT_TYPE] = "text/css";
+        resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "text/css";
       	resp.body = tracez_style;
       }
-      else if (query == "/tracez" || query.empty() || StartsWith(query, "index.html")) {
-        resp.headers[testing::CONTENT_TYPE] = "text/html";
+      else if (query.empty() || query == "/tracez" || StartsWith(query, "index.html")) {
+        resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "text/html";
       	resp.body = tracez_index;
       }
-      else { resp.headers[testing::CONTENT_TYPE] = "text/plain";
-      resp.body = query;
+      else {
+      	resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "text/plain";
+      	resp.body = "Invalid query: " + query;
       }
     }
 

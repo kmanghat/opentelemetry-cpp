@@ -29,3 +29,20 @@ cc_binary(
         "//ext/src/zpages",
     ],
 )
+
+
+cc_binary(
+    name = "zpagesexample",
+    srcs = [
+        "zpagesexample.cc"
+    ],
+    linkopts = select({
+        "//bazel:windows": [],
+        "//conditions:default": ["-pthread"],
+    }),
+    deps = [
+        "//ext:headers",
+        "//sdk/src/trace",
+        "//ext/src/zpages",
+    ],
+)
