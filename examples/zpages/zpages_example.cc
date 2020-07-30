@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
   /** 
    * The following line initializes zPages and starts a webserver at 
    * http://localhost:30000/tracez/ where spans that are created can be viewed.
-   * Note that the the webserver is destroyed after the application ends execution. 
+   * Note that the webserver is destroyed after the application ends execution. 
    */
   zPages();
   
