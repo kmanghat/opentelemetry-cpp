@@ -4,31 +4,28 @@ OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
 
-  void TracezHttpServer::UpdateAggregations() {
-    aggregated_data_ = data_aggregator_->GetAggregatedTracezData();
-  }
-
   json TracezHttpServer::GetAggregations() {
-    UpdateAggregations();
-    auto counts = json::array();
+    aggregated_data_ = data_aggregator_->GetAggregatedTracezData();
+    auto counts_json = json::array();
 
     for(const auto &aggregation_group: aggregated_data_){
       const auto &buckets = aggregation_group.second;
       const auto &complete_ok_counts = buckets.completed_span_count_per_latency_bucket;
 
       auto latency_counts = json::array();
-      for (int i = 0; i < 9; i++) {
-        latency_counts.push_back(complete_ok_counts[i]);
+      for (auto boundary = LatencyBoundary::k0MicroTo10Micro;
+       boundary != LatencyBoundary::k100SecondToMax; ++boundary) {
+        latency_counts.push_back(complete_ok_counts[boundary]);
       }
 
-      counts.push_back({
+      counts_json.push_back({
         {"name", aggregation_group.first},
         {"error", buckets.error_span_count},
         {"running", buckets.running_span_count},
         {"latency", latency_counts}
       });
     }
-    return counts;
+    return counts_json;
   }
 
   json TracezHttpServer::GetRunningSpansJSON(const std::string& name) {
@@ -40,16 +37,20 @@ namespace zpages {
       const auto &running_samples = grouping->second.sample_running_spans;
       for (const auto &sample : running_samples){
         running_json.push_back({
-          {"spanid", sample.span_id},
-          {"parentid", sample.parent_id},
-          {"traceid", sample.trace_id},
-          {"start", sample.start_time},
+          {"spanid", std::string(
+        reinterpret_cast<const char *>(sample.GetSpanId().Id().data()))},
+          {"parentid", std::string(reinterpret_cast<const char *>(
+        sample.GetParentSpanId().Id().data()))},
+          {"traceid", std::string(
+        reinterpret_cast<const char *>(sample.GetTraceId().Id().data()))},
+          {"start", sample.GetStartTime().time_since_epoch().count()},
+          {"attributes", GetAttributesJSON(sample)},
         });
       }
     }
     return running_json;
   }
- 
+
   json TracezHttpServer::GetErrorSpansJSON(const std::string& name) {
     auto error_json = json::array();
 
@@ -57,39 +58,92 @@ namespace zpages {
 
     if(grouping != aggregated_data_.end()){
       const auto &error_samples = grouping->second.sample_error_spans;
-      for(const auto &error_sample : error_samples){
+      for(const auto &sample : error_samples){
         error_json.push_back({
-          {"spanid", error_sample.span_id},
-          {"parentid", error_sample.parent_id},
-          {"traceid", error_sample.trace_id},
-          {"start", error_sample.start_time},
-          {"status", error_sample.status_code}
+          {"spanid", std::string(
+        reinterpret_cast<const char *>(sample.GetSpanId().Id().data()))},
+          {"parentid", std::string(reinterpret_cast<const char *>(
+        sample.GetParentSpanId().Id().data()))},
+          {"traceid", std::string(
+        reinterpret_cast<const char *>(sample.GetTraceId().Id().data()))},
+          {"start", sample.GetStartTime().time_since_epoch().count()},
+          {"status", (unsigned short)sample.GetStatus()},
+          {"attributes", GetAttributesJSON(sample)},
         });
       }
     }
     return error_json;
   }
 
-  json TracezHttpServer::GetLatencySpansJSON(const std::string& name, const int& latency_range_index){
+  json TracezHttpServer::GetLatencySpansJSON(const std::string& name, int latency_range_index){
     auto latency_json = json::array();
 
     auto grouping = aggregated_data_.find(name);
 
     if(grouping != aggregated_data_.end()){
       const auto &latency_samples = grouping->second.sample_latency_spans[latency_range_index];
-      for(const auto &latency_sample : latency_samples){
+      for(const auto &sample : latency_samples){
         latency_json.push_back({
-          {"spanid", latency_sample.span_id},
-          {"parentid", latency_sample.parent_id},
-          {"traceid", latency_sample.trace_id},
-          {"start", latency_sample.start_time},
-          {"duration", latency_sample.duration},
+          {"spanid", std::string(
+        reinterpret_cast<const char *>(sample.GetSpanId().Id().data()))},
+          {"parentid", std::string(reinterpret_cast<const char *>(
+        sample.GetParentSpanId().Id().data()))},
+          {"traceid", std::string(
+        reinterpret_cast<const char *>(sample.GetTraceId().Id().data()))},
+          {"start", sample.GetStartTime().time_since_epoch().count()},
+          {"duration", sample.GetDuration().count()},
+          {"attributes", GetAttributesJSON(sample)},
         });
       }
     }
     return latency_json;
   }
 
+  json TracezHttpServer::GetAttributesJSON(const opentelemetry::ext::zpages::ThreadsafeSpanData& sample) {
+    auto attributes_json = json::object();
+    for (const auto &sample_attribute : sample.GetAttributes()) {
+      auto& key = sample_attribute.first;
+      auto& val = sample_attribute.second; // SpanDataAttributeValue
+
+      /* Convert variant types to into their nonvariant form. This is done this way because
+         the frontend and JSON doesn't care about type, and variant's get function only allows
+         const integers or literals */
+      
+      switch(val.index()) {
+        case 0:
+          attributes_json[key] = opentelemetry::nostd::get<0>(val);
+          break;
+        case 1:
+          attributes_json[key] = opentelemetry::nostd::get<1>(val);
+          break;
+        case 2:
+          attributes_json[key] = opentelemetry::nostd::get<2>(val);
+          break;
+        case 3:
+          attributes_json[key] = opentelemetry::nostd::get<3>(val);
+          break;
+        case 4:
+          attributes_json[key] = opentelemetry::nostd::get<4>(val);
+          break;
+        case 5:
+          attributes_json[key] = opentelemetry::nostd::get<5>(val);
+          break;
+        case 6:
+          attributes_json[key] = opentelemetry::nostd::get<6>(val);
+          break;
+        case 7:
+          attributes_json[key] = opentelemetry::nostd::get<7>(val);
+          break;
+        case 8:
+          attributes_json[key] = opentelemetry::nostd::get<8>(val);
+          break;
+        case 9:
+          attributes_json[key] = opentelemetry::nostd::get<9>(val);
+          break;
+      }
+    }
+    return attributes_json;
+  }
 
 } // namespace zpages
 } // namespace ext

@@ -130,8 +130,8 @@ class TracezDataAggregator {
    * @param sample_spans the sample span list into which span is to be inserted
    * @param span_data the span_data to be inserted into list
    */
-  void InsertIntoSampleSpanList(std::list<SampleSpanData>& sample_spans,
-                                ThreadsafeSpanData& span_data);
+  void InsertIntoSampleSpanList(std::list<ThreadsafeSpanData>& sample_spans,
+                                ThreadsafeSpanData &span_data);
 
   /** Instance of span processor used to collect raw data **/
   std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;

@@ -19,7 +19,7 @@ namespace zpages {
 
 class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
  public:
-  /*
+  /**
    * Construct the server by initializing the endpoint for querying TraceZ aggregation data and files,
    * along with taking ownership of the aggregator whose data is used to send data to the frontend
    * @param aggregator is the TraceZ Data Aggregator, which calculates aggregation info
@@ -27,7 +27,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    * @param port is the port where the TraceZ webpages will be displayed, default being 30000
    */
   TracezHttpServer(std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator> &&aggregator,
-                   std::string host = "localhost", int port = 30000) :
+                   const std::string& host = "localhost", int port = 30000) :
                    opentelemetry::ext::zpages::zPagesHttpServer("/tracez/get", host, port),
                    data_aggregator_(std::move(aggregator)) {
     InitializeTracezEndpoint(*this);
@@ -35,7 +35,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
   };
 
  private:
-   /*
+  /**
    * Set the HTTP server to use the "Serve" callback to send the appropriate data when queried
    * @param server, which should be an instance of this object
    */
@@ -43,19 +43,19 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
     server[endpoint_] = Serve;
   }
 
-  /*
+  /**
    * Updates the stored aggregation data (aggregations_) using the data aggregator
    */
   void UpdateAggregations();
-  
-  /*
+
+  /**
    * First updates the stored aggregations, then translates that data from a C++ map to
    * a JSON object
    * @returns JSON object of collected spans bucket counts by name
    */
   json GetAggregations();
 
-  /*
+  /**
    * Using the stored aggregations, finds the span group with the right name and returns
    * its running span data as a JSON, only grabbing the fields needed for the frontend
    * @param name of the span group whose running data we want
@@ -63,7 +63,7 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    */
   json GetRunningSpansJSON(const std::string& name);
 
-  /*
+  /**
    * Using the stored aggregations, finds the span group with the right name and returns
    * its error span data as a JSON, only grabbing the fields needed for the frontend
    * @param name of the span group whose running data we want
@@ -71,20 +71,27 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
    */
   json GetErrorSpansJSON(const std::string& name);
 
-  /*
+  /**
    * Using the stored aggregations, finds the span group with the right name and bucket index
    * returning its latency span data as a JSON, only grabbing the fields needed for the frontend
    * @param name of the span group whose latency data we want
    * @param index of which latency bucket to grab from
    * @returns JSON representing bucket span data with the passed in name and latency range
    */
-  json GetLatencySpansJSON(const std::string& name, const int& latency_range_index);
-  
-  /*
+  json GetLatencySpansJSON(const std::string& name, int latency_range_index);
+
+  /**
+   * Returns attributes, which have varied types, from a span data to convert into JSON
+   * @param sample current span data, whose attributes we want to extract
+   * @returns JSON representing attributes for a given threadsafe span data
+   */
+  json GetAttributesJSON(const opentelemetry::ext::zpages::ThreadsafeSpanData& sample);
+
+  /**
    * Sets the response object with the TraceZ aggregation data based on the request endpoint
    * @param req is the HTTP request, which we use to figure out the response to send
    * @param resp is the HTTP response we want to send to the frontend, either webpage or TraceZ
-   * aggregation data 
+   * aggregation data
    */
   HTTP_SERVER_NS::HttpRequestCallback Serve{[&](HTTP_SERVER_NS::HttpRequest const& req,
                                                       HTTP_SERVER_NS::HttpResponse& resp) {
