@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   zPages();
   
   auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
-  
+
   // Create a span of each type(running, completed and error)
   auto running_span = tracer->StartSpan("example span");
   tracer->StartSpan("example span")->End();
