@@ -1,5 +1,5 @@
 #include "opentelemetry/ext/zpages/tracez_http_server.h"
-
+#include <iostream>
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
@@ -17,8 +17,8 @@ namespace zpages {
       const auto &complete_ok_counts = buckets.completed_span_count_per_latency_bucket;
 
       auto latency_counts = json::array();
-      for (int i = 0; i < 9; i++) {
-        latency_counts.push_back(complete_ok_counts[i]);
+      for (unsigned int boundary = 0; boundary < kLatencyBoundaries.size(); boundary++){
+        latency_counts.push_back(complete_ok_counts[boundary]);
       }
 
       counts.push_back({
@@ -40,10 +40,13 @@ namespace zpages {
       const auto &running_samples = grouping->second.sample_running_spans;
       for (const auto &sample : running_samples){
         running_json.push_back({
-          {"spanid", sample.span_id},
-          {"parentid", sample.parent_id},
-          {"traceid", sample.trace_id},
-          {"start", sample.start_time},
+          {"spanid", std::string(
+        reinterpret_cast<const char *>(sample.GetSpanId().Id().data()))},
+          {"parentid", std::string(reinterpret_cast<const char *>(
+        sample.GetParentSpanId().Id().data()))},
+          {"traceid", std::string(
+        reinterpret_cast<const char *>(sample.GetTraceId().Id().data()))},
+          {"start", sample.GetStartTime().time_since_epoch().count()},
         });
       }
     }
@@ -59,11 +62,14 @@ namespace zpages {
       const auto &error_samples = grouping->second.sample_error_spans;
       for(const auto &error_sample : error_samples){
         error_json.push_back({
-          {"spanid", error_sample.span_id},
-          {"parentid", error_sample.parent_id},
-          {"traceid", error_sample.trace_id},
-          {"start", error_sample.start_time},
-          {"status", error_sample.status_code}
+          {"spanid", std::string(
+        reinterpret_cast<const char *>(error_sample.GetSpanId().Id().data()))},
+          {"parentid", std::string(reinterpret_cast<const char *>(
+        error_sample.GetParentSpanId().Id().data()))},
+          {"traceid", std::string(
+        reinterpret_cast<const char *>(error_sample.GetTraceId().Id().data()))},
+          {"start", error_sample.GetStartTime().time_since_epoch().count()},
+          {"status", (unsigned short)error_sample.GetStatus()}
         });
       }
     }
@@ -79,11 +85,14 @@ namespace zpages {
       const auto &latency_samples = grouping->second.sample_latency_spans[latency_range_index];
       for(const auto &latency_sample : latency_samples){
         latency_json.push_back({
-          {"spanid", latency_sample.span_id},
-          {"parentid", latency_sample.parent_id},
-          {"traceid", latency_sample.trace_id},
-          {"start", latency_sample.start_time},
-          {"duration", latency_sample.duration},
+          {"spanid", std::string(
+        reinterpret_cast<const char *>(latency_sample.GetSpanId().Id().data()))},
+          {"parentid", std::string(reinterpret_cast<const char *>(
+        latency_sample.GetParentSpanId().Id().data()))},
+          {"traceid", std::string(
+        reinterpret_cast<const char *>(latency_sample.GetTraceId().Id().data()))},
+          {"start", latency_sample.GetStartTime().time_since_epoch().count()},
+          {"duration", latency_sample.GetDuration().count()},
         });
       }
     }

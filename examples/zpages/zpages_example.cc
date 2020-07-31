@@ -1,61 +1,42 @@
-#pragma once
-
-#include <fstream>
+/**
+ * This is a basic example for zpages that helps users get familiar with how to
+ * use this feature in OpenTelemetery
+ */
 #include <iostream>
 #include <string>
 #include <chrono>
-#include <iostream>
 
-#include "opentelemetry/ext/zpages/zpages.h"
-
-using opentelemetry::core::SteadyTimestamp;
-namespace nostd = opentelemetry::nostd;
-using opentelemetry::v0::trace::Span;
+#include "opentelemetry/ext/zpages/zpages.h" // Required file include for zpages
 
 int main(int argc, char* argv[]) {
+  
+  /** 
+   * The following line initializes zPages and starts a webserver at 
+   * http://localhost:30000/tracez/ where spans that are created in the application
+   * can be viewed.
+   * Note that the webserver is destroyed after the application ends execution. 
+   */
   zPages();
+  
   auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
-  std::vector<nostd::unique_ptr<Span>> running_span_container;
-  while (1) {
-    std::string span_name;
-    std::cout << "Enter span name or CTRL C to exit: ";
-    std::cin >> span_name;
-    
-    char span_type;
-    std::cout << "Enter span type Error(E), Completed(C), Running(R)";
-    std::cin >> span_type;
-    
-    if(span_type == 'R'){
-      running_span_container.push_back(tracer->StartSpan(span_name));
-    }
-    else if(span_type == 'C'){
-      int start_time;
-      std::cout << "Start time in nanoseconds: ";
-      std::cin >> start_time;
-      
-      int end_time;
-      std::cout << "End time in nanoseconds: ";
-      std::cin >> end_time;
-      
-      opentelemetry::trace::StartSpanOptions start;
-      start.start_steady_time = SteadyTimestamp(nanoseconds(start_time));
-      opentelemetry::trace::EndSpanOptions end;
-      end.end_steady_time = SteadyTimestamp(nanoseconds(end_time));
-      tracer->StartSpan(span_name,start)->End(end);
-    } else {
-      std::string description;
-      int error_code = 0;
-      std::cout << "Enter an error code (integer between 1-16): ";
-      std::cin >> error_code;
-      if(error_code < 1 || error_code > 16) error_code = 0;
-      std::cout << "Enter a span description: ";
-      std::cin.get();
-      getline(std::cin,description);
-      tracer->StartSpan(span_name)->SetStatus((opentelemetry::trace::CanonicalCode)error_code,
-                  description);
-    }
-    std::cout << "\n";
+
+  // Create a span of each type(running, completed and error)
+  auto running_span = tracer->StartSpan("examplespan");
+  tracer->StartSpan("examplespan")->End();
+  tracer->StartSpan("examplespan")->SetStatus(
+      opentelemetry::trace::CanonicalCode::CANCELLED, "Cancelled example");
+  
+  // Change the name of the running span and end it
+  running_span->UpdateName("examplespan2");
+  running_span->End();
+  
+  // Create another running span with a different name
+  auto running_span2 = tracer->StartSpan("examplespan2");
+  
+  // Create a completed span every second till user stops the loop
+  std::cout << "Presss CTRL+C to stop...\n";
+  while(true){
+    std::this_thread::sleep_for(seconds(1));
+    tracer->StartSpan("examplespan")->End();
   }
-  std::cout << "Presss <ENTER> to stop...\n";
-  std::cin.get();
 }
