@@ -94,7 +94,6 @@ namespace common
 /// </summary>
 struct Thread
 {
-
   std::thread m_thread;
 
   volatile bool m_terminate{false};
@@ -153,7 +152,6 @@ namespace SocketTools
 // whose constructor/destructor will be called before and after main().
 struct WsaInitializer
 {
-
   WsaInitializer()
   {
     WSADATA wsaData;
@@ -270,7 +268,6 @@ struct SocketAddr
 /// </summary>
 struct Socket
 {
-
 #ifdef _WIN32
   typedef SOCKET Type;
   static Type const Invalid = INVALID_SOCKET;
@@ -454,7 +451,6 @@ struct SocketData
 /// </summary>
 struct Reactor : protected common::Thread
 {
-
   /// <summary>
   /// Socket State callback
   /// </summary>
@@ -732,8 +728,10 @@ public:
 
       WSANETWORKEVENTS ne;
       ::WSAEnumNetworkEvents(socket, m_events[index], &ne);
-      LOG_TRACE("Reactor: Handling socket 0x%x (index %d) with active flags 0x%x (armed 0x%x)",
-                static_cast<int>(socket), index, ne.lNetworkEvents, flags);
+      LOG_TRACE(
+          "Reactor: Handling socket 0x%x (index %d) with active flags 0x%x "
+          "(armed 0x%x)",
+          static_cast<int>(socket), index, ne.lNetworkEvents, flags);
 
       if ((flags & Readable) && (ne.lNetworkEvents & FD_READ))
       {
