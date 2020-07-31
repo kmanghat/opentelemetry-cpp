@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <iostream>
 
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
 #include "opentelemetry/ext/zpages/tracez_processor.h"
@@ -20,7 +21,8 @@ class zPages {
     : tracez_processor_(std::make_shared<opentelemetry::ext::zpages::TracezSpanProcessor>()),
       tracez_provider_(opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
         new opentelemetry::sdk::trace::TracerProvider(tracez_processor_))) {
-
+    
+    std::cout << "Constructor\n";
     // Set the global trace provider for a user to use, which is connected to our span processor
     opentelemetry::trace::Provider::SetTracerProvider(tracez_provider_);
 
@@ -30,8 +32,15 @@ class zPages {
     // Ensure zPages has time to setup, so the program doesn't crash
     std::this_thread::sleep_for(setup_time_);
   }
+  
+  static void StartServer(){
+    tracez_processor_ = std::make_shared<opentelemetry::ext::zpages::TracezSpanProcessor>();
+    tracez_provider_ = opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
+        new opentelemetry::sdk::trace::TracerProvider(tracez_processor_));
+  }
 
  private:
+ zPages(){}
  /*
   * Runs the HTTP server in the background for TraceZ
   */

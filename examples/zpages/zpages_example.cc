@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
    * Note that the webserver is destroyed after the application ends execution. 
    */
   zPages();
-  
+  std::cout << "In main\n";
   auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
 
   // Create a span of each type(running, completed and error)
