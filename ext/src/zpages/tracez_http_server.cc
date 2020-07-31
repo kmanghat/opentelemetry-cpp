@@ -1,5 +1,5 @@
 #include "opentelemetry/ext/zpages/tracez_http_server.h"
-#include <iostream>
+
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext {
 namespace zpages {
