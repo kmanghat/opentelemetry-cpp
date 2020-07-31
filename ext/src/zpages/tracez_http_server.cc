@@ -17,8 +17,7 @@ namespace zpages {
       const auto &complete_ok_counts = buckets.completed_span_count_per_latency_bucket;
 
       auto latency_counts = json::array();
-      for (auto boundary = LatencyBoundary::k0MicroTo10Micro;
-       boundary != LatencyBoundary::k100SecondToMax; ++boundary) {
+      for (unsigned int boundary = 0; boundary < kLatencyBoundaries.size(); boundary++){
         latency_counts.push_back(complete_ok_counts[boundary]);
       }
 
