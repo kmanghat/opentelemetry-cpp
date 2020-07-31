@@ -23,7 +23,7 @@ class zPagesHttpServer : public HTTP_SERVER_NS::FileHttpServer {
    * @param port is the port where the TraceZ webpages will be displayed
    * @param endpoint is where this specific zPage will server files
    */
-  zPagesHttpServer(const std::string& endpoint, std::string host, int port) : FileHttpServer(), endpoint_(endpoint) {};
+  zPagesHttpServer(const std::string& endpoint, "127.0.0.1", int port = 52620) : FileHttpServer(), endpoint_(endpoint) {};
 
   /**
    * Helper function that returns query information by isolating it from the base endpoint
