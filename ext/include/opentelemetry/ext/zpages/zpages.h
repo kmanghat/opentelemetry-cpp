@@ -31,6 +31,11 @@ class zPages {
     std::this_thread::sleep_for(setup_time_);
   }
 
+  ~zPages() {
+    tracez_server_->stop();
+    tracez_server_thread_.join();
+  }
+
  private:
  /*
   * Runs the HTTP server in the background for TraceZ
@@ -39,17 +44,16 @@ class zPages {
     auto tracez_aggregator = std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator>(
         new opentelemetry::ext::zpages::TracezDataAggregator(tracez_processor_));
 
-    opentelemetry::ext::zpages::TracezHttpServer tracez_server(std::move(tracez_aggregator));
-    tracez_server.start();
-
-    // Keeps zPages server up indefinitely
+    tracez_server_ = std::unique_ptr<opentelemetry::ext::zpages::TracezHttpServer>(
+        new opentelemetry::ext::zpages::TracezHttpServer(std::move(tracez_aggregator)));
+    // tracez_server_->start();
+    //std::thread(HTTP_SERVER_NS::HttpServer::start, tracez_server_).detach();
     while (1) std::this_thread::sleep_for(long_time_);
-    tracez_server.stop();
   }
-
 
   std::thread tracez_server_thread_;
   std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor> tracez_processor_;
+  std::unique_ptr<opentelemetry::ext::zpages::TracezHttpServer> tracez_server_;
   opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider> tracez_provider_;
   const std::chrono::duration<unsigned int, std::nano> setup_time_ = std::chrono::nanoseconds(100);
   const std::chrono::duration<unsigned int, std::ratio<3600>> long_time_ = std::chrono::hours(9999);
