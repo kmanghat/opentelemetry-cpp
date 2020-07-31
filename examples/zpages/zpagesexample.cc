@@ -1,5 +1,3 @@
-#pragma once
-
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -30,26 +28,24 @@ void MakeUniqueSpans() {
 
 void MakeSpans(int i) {
       auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
-      auto span = tracer->StartSpan(std::to_string(i));
+      auto span = tracer->StartSpan("span" + std::to_string(i));
       if (rand() % 5 == 0) std::this_thread::sleep_for(std::chrono::seconds(rand() % 120));
       else std::this_thread::sleep_for(std::chrono::nanoseconds(rand() % 10000000));
       span->End();
-      
-
 }
 
 int main(int argc, char* argv[]) {
   zPages();
-  auto t = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
-  auto y = t->StartSpan("always running");
+  auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
+  auto run_span = tracer->StartSpan("always running");
 
   while (1) {
     for (int i = 0; i < 1000; i++) {
-    	//std::thread(MakeSpans, i % 5).detach();
-    	std::thread(MakeUniqueSpans).detach();
+    	std::thread(MakeSpans, i % 5).detach();
+    	//std::thread(MakeUniqueSpans).detach();
     }
     std::cout << "Press <ENTER> for more spans";
     std::cin.get();
   }
-  y->End();
+  run_span->End();
 }
