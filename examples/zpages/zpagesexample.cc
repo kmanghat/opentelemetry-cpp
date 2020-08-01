@@ -35,7 +35,7 @@ void MakeSpans(int i) {
 }
 
 int main(int argc, char* argv[]) {
-  zPages();
+  //zPages();
   auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
   auto run_span = tracer->StartSpan("always running");
 
