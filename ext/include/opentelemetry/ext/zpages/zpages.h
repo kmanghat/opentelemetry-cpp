@@ -47,13 +47,16 @@ private:
    */
   zPages(){
     auto tracez_processor_ = std::make_shared<TracezSpanProcessor>();
-    auto tracez_provider_ = opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
+    auto tracez_provider_ = 
+      opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
         new opentelemetry::sdk::trace::TracerProvider(tracez_processor_));
 
     auto tracez_aggregator = std::unique_ptr<TracezDataAggregator>(
         new TracezDataAggregator(tracez_processor_));
 
-    tracez_server_ = std::unique_ptr<TracezHttpServer>(new TracezHttpServer(std::move(tracez_aggregator)));
+    tracez_server_ = std::unique_ptr<TracezHttpServer>
+      (new TracezHttpServer(std::move(tracez_aggregator)));
+      
     tracez_server_->start();
 
     opentelemetry::trace::Provider::SetTracerProvider(tracez_provider_);
