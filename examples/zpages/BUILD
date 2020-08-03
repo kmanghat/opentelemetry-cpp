@@ -14,16 +14,35 @@
 
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = "zpages",
-    srcs = glob(["**/*.cc"]),
-    hdrs = glob(["**/*.h"]),
-    include_prefix = "ext/zpages",
+cc_binary(
+    name = "zpages_example",
+    srcs = [
+        "zpages_example.cc"
+    ],
+    linkopts = select({
+        "//bazel:windows": [],
+        "//conditions:default": ["-pthread"],
+    }),
     deps = [
-        "//api",
-        "//sdk:headers",
         "//ext:headers",
-        "@github_nlohmann_json//:json",
+        "//sdk/src/trace",
+        "//ext/src/zpages",
     ],
 )
 
+
+cc_binary(
+    name = "zpagesexample",
+    srcs = [
+        "zpagesexample.cc"
+    ],
+    linkopts = select({
+        "//bazel:windows": [],
+        "//conditions:default": ["-pthread"],
+    }),
+    deps = [
+        "//ext:headers",
+        "//sdk/src/trace",
+        "//ext/src/zpages",
+    ],
+)

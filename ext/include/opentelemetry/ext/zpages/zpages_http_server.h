@@ -1,134 +1,77 @@
 #pragma once
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <mutex>
 #include <string>
-#include <vector>
-#include <algorithm>
 #include <unordered_map>
+#include <vector>
 
+#include "opentelemetry/ext/http/server/http_server.h"
 
-#define HAVE_HTTP_DEBUG
-#define HAVE_CONSOLE_LOG
-
-#include "nlohmann/json.hpp"
-#include "opentelemetry/ext/http/server/HttpServer.h"
-#include "opentelemetry/ext/zpages/tracez_handler.h"
-
-using json = nlohmann::json;
-
-namespace ext
-{
-namespace zpages
-{
-
+OPENTELEMETRY_BEGIN_NAMESPACE
+namespace ext {
+namespace zpages {
 
 class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
- public:
-  bool FileGetSuccess (std::string filename, std::vector<char>& result) {
-    #ifdef _WIN32
-    std::replace(filename.begin(), filename.end(), '/', '\\');
-    #endif
-    std::streampos size;
-    std::ifstream file(filename, std::ios::in | std::ios::binary | std::ios::ate);
-    if (file.is_open()) {
-      size = file.tellg();
-      if (size) {
-          result.resize(size);
-          file.seekg(0, std::ios::beg);
-          file.read(result.data(), size);
-      }
-      file.close();
-      return true;
-    }
-    return false;
-  };
-
-  std::string GetMimeContentType(std::string filename) {
-    std::string file_ext = filename.substr(filename.find_last_of(".") + 1);
-    auto file_type = mime_types_.find(file_ext);
-    return (file_type != mime_types_.end())
-        ? file_type->second
-        : testing::CONTENT_TYPE_TEXT;
-  };
-
-  // For serving index.html files
-  bool IsExtension(const std::string& s) {
-    for (auto& c : s) {
-      if (c == '.') return true;
-    }
-    return false;
-  }
-
-  // Ensure that file, file/, file/index.html and
-  // file.png and file.png/ are all served the same
-  std::string GetFileName(std::string S) {
-    if (S.back() == '/') {
-      auto temp = S.substr(0, S.size() - 1);
-      S = temp;
-    }
-    if (!IsExtension(S)) S += "/index.html";
-
-    return S;
-  }
-
-  HTTP_SERVER_NS::HttpRequestCallback ServeFile{[&](HTTP_SERVER_NS::HttpRequest const& req,
-                                                HTTP_SERVER_NS::HttpResponse& resp) {
-    LOG_INFO("File: %s\n", req.uri.c_str());
-    auto f = GetFileName(req.uri);
-    auto filename = f.c_str() + 1;
-
-    std::vector<char> content;
-    if (FileGetSuccess(filename, content)) {
-        resp.headers[testing::CONTENT_TYPE] = GetMimeContentType(filename);
-        resp.body = std::string(content.data(), content.size());
-        resp.code = 200;
-        resp.message = HTTP_SERVER_NS::HttpServer::getDefaultResponseMessage(resp.code);
-        return resp.code;
-    }
-    // Two additional 'special' return codes possible here:
-    // 0    - proceed to next handler
-    // -1   - immediately terminate and close connection
-    resp.headers[testing::CONTENT_TYPE] = testing::CONTENT_TYPE_TEXT;
-    resp.code = 404;
-    resp.message = HTTP_SERVER_NS::HttpServer::getDefaultResponseMessage(resp.code);
-    resp.body = resp.message;
-    return 404;
-  }};
-
-  void InitializeTracezEndpoints(zPagesHttpServer& server) {
-    for (auto &s : tracez_handler_->GetEndpoints()) server[s] = tracez_handler_->ServeJsonCb;
-    server["/"] = ServeFile;
-
-  }
-
-  zPagesHttpServer(std::string serverHost, int port = 30000) : HttpServer() {
+ protected:
+  /**
+   * Construct the server by initializing the endpoint for serving static files, which show up on the
+   * web if the user is on the given host:port. Static files can be seen relative to the folder where the
+   * executable was ran.
+   * @param host is the host where the TraceZ webpages will be displayed
+   * @param port is the port where the TraceZ webpages will be displayed
+   * @param endpoint is where this specific zPage will server files
+   */
+  zPagesHttpServer(const std::string& endpoint, const std::string& host = "127.0.0.1", int port = 52620) : HttpServer(), endpoint_(endpoint) {
     std::ostringstream os;
-    os << serverHost << ":" << port;
+    os << host << ":" << port;
     setServerName(os.str());
     addListeningPort(port);
-
-    tracez_handler_ = std::unique_ptr<ext::zpages::TracezHandler>(
-        new ext::zpages::TracezHandler());
-    InitializeTracezEndpoints(*this);
   };
 
- private:
-    const std::unordered_map<std::string, std::string> mime_types_ = {
-      {"css",  "text/css"},
-      {"png",  "image/png"},
-      {"js",   "text/javascript"},
-      {"htm",  "text/html"},
-      {"html", "text/html"},
-      {"json", "application/json"},
-      {"txt",  "text/plain"},
-      {"jpg",  "image/jpeg"},
-      {"jpeg", "image/jpeg"},
-    };
-    std::unique_ptr<ext::zpages::TracezHandler> tracez_handler_;
+  /**
+   * Helper function that returns query information by isolating it from the base endpoint
+   * @param uri is the full query
+   */
+  std::string GetQuery(const std::string& uri) {
+    if (endpoint_.length() + 1 > uri.length()) return uri;
+    return uri.substr(endpoint_.length() + 1);
+  }
+
+  /**
+   * Helper that returns whether a str starts with pre
+   * @param str is the string we're checking
+   * @param pre is the prefix we're checking against
+   */
+  bool StartsWith(const std::string& str, const std::string& pre) {
+    return str.rfind(pre, 0) == 0;
+  }
+
+  /**
+   * Helper that returns the remaining string after the leftmost backslash
+   * @param str is the string we're extracting from
+   */
+  std::string GetAfterSlash(const std::string& str) {
+    std::size_t backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return "";
+    return str.substr(backslash + 1);
+  }
+
+  /**
+   * Helper that returns the remaining string after the leftmost backslash
+   * @param str is the string we're extracting from
+   */
+  std::string GetBeforeSlash(const std::string& str) {
+    std::size_t backslash = str.find("/");
+    if (backslash == std::string::npos || backslash == str.length()) return str;
+    return str.substr(0, backslash);
+  }
+
+  const std::string endpoint_;
 
 };
 
 } // namespace zpages
 } // namespace ext
+OPENTELEMETRY_END_NAMESPACE
