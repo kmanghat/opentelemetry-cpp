@@ -31,12 +31,7 @@ public:
    * application. It creates a static instance of this class.
    */
   static void Initialize(){
-    /** 
-     * Creating this will cause an unused variable warning but the pupose of the
-     * object is to start and end the server in the constructor and destructor
-     * respectively.
-     */
-    static zPages* instance = new zPages;
+    static zPages instance;
   }
   
 private:
