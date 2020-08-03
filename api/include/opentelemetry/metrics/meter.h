@@ -10,8 +10,9 @@ class Meter
 {
 public:
   Meter() = default;
+
 };
 
-}  // namespace metrics
+} // namespace metrics
 
 OPENTELEMETRY_END_NAMESPACE

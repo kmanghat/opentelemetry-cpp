@@ -5,8 +5,8 @@ namespace sdk
 {
 namespace metrics
 {
-MeterProvider::MeterProvider(std::string library_name, std::string library_version) noexcept
-    : meter_(new Meter(library_name, library_version))
+MeterProvider::MeterProvider() noexcept
+    :  meter_(new Meter)
 {}
 
 opentelemetry::nostd::shared_ptr<opentelemetry::metrics::Meter> MeterProvider::GetMeter(
