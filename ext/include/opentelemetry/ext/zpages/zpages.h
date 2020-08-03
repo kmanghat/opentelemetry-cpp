@@ -13,7 +13,6 @@
 #include "opentelemetry/nostd/shared_ptr.h"
 
 
-
 class zPages {
  public:
   zPages(){
