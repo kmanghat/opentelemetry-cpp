@@ -14,7 +14,12 @@
 
 
 class zPages {
- public:
+public:
+  static void Initialize(){
+    static zPages instance;
+  }
+  
+private:
   zPages(){
     auto tracez_processor_ = std::make_shared<opentelemetry::ext::zpages::TracezSpanProcessor>();
     auto tracez_provider_ = opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
@@ -31,15 +36,10 @@ class zPages {
     std::this_thread::sleep_for(setup_time_);
   }
     
-   ~zPages(){
+  ~zPages(){
     tracez_server_->stop();
-   }
-
- private:
-    std::unique_ptr<opentelemetry::ext::zpages::TracezHttpServer> tracez_server_;
-    const std::chrono::duration<unsigned int, std::nano> setup_time_ = std::chrono::nanoseconds(100);
+  }
+  std::unique_ptr<opentelemetry::ext::zpages::TracezHttpServer> tracez_server_;
+  const std::chrono::duration<unsigned int, std::nano> setup_time_ = std::chrono::nanoseconds(100);
 };
 
-void InitializeZpages(){
-  static zPages instance;
-}

@@ -16,9 +16,9 @@ int main(int argc, char* argv[]) {
    * can be viewed.
    * Note that the webserver is destroyed after the application ends execution. 
    */
-  InitializeZpages();
+  zPages::Initialize();
   auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
-
+  
   std::cout << "This example for zPages creates a few types of spans and then "
             << "creates a span every second for the duration of the application"
             << "\n";
@@ -34,7 +34,6 @@ int main(int argc, char* argv[]) {
   
   // Create another running span with a different name
   auto running_span2 = tracer->StartSpan("examplespan2");
-  
   // Create a completed span every second till user stops the loop
   std::cout << "Presss CTRL+C to stop...\n";
   while(true){
