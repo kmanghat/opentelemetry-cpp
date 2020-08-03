@@ -109,6 +109,8 @@ class TracezHttpServer : public opentelemetry::ext::zpages::zPagesHttpServer {
         auto queried_latency_name = GetAfterSlash(query);
         auto queried_latency_index = std::stoi(GetBeforeSlash(queried_latency_name));
         auto queried_name = GetAfterSlash(queried_latency_name);
+        ReplaceHtmlChars(queried_name);
+        //resp.body = "[" + queried_latency_name + ", " + std::to_string(queried_latency_index) + ", " + queried_name + ", " + "]";
         resp.body = GetLatencySpansJSON(queried_name, queried_latency_index).dump();
       }
       else {

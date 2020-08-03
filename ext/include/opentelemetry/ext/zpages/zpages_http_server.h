@@ -68,7 +68,24 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer {
     return str.substr(0, backslash);
   }
 
+  void ReplaceAll(std::string& str, const std::string& search, const std::string& replacement) {
+    size_t idx = str.find(search, 0);
+    while (idx != std::string::npos) {
+     str.replace(idx, search.length(), replacement);
+     idx = str.find(search, idx);
+    }
+  }
+
+  void ReplaceHtmlChars(std::string& str) {
+    for (const auto& replace_pair : replace_map_) {
+      ReplaceAll(str, replace_pair.first, replace_pair.second);
+    }
+  }
+
   const std::string endpoint_;
+  const std::unordered_map<std::string, std::string> replace_map_ = {
+    {"%20", " "}
+  };
 
 };
 
