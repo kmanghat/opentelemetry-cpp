@@ -23,14 +23,13 @@ int main(int argc, char* argv[]) {
             << "creates a span every second for the duration of the application"
             << "\n";
   // Create a span of each type(running, completed and error)
-  auto running_span = tracer->StartSpan("examplespan");
+  auto running_span = tracer->StartSpan("examplespan1");
+  running_span->SetAttribute("attribute1", 314159);
+  running_span->End();
+  
   tracer->StartSpan("examplespan")->End();
   tracer->StartSpan("examplespan")->SetStatus(
       opentelemetry::trace::CanonicalCode::CANCELLED, "Cancelled example");
-  
-  // Change the name of the running span and end it
-  running_span->UpdateName("examplespan2");
-  running_span->End();
   
   // Create another running span with a different name
   auto running_span2 = tracer->StartSpan("examplespan2");
