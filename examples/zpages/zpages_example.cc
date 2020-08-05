@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
    * can be viewed.
    * Note that the webserver is destroyed after the application ends execution. 
    */
-  zPages();
+  zPages::Initialize();
   auto tracer = opentelemetry::trace::Provider::GetTracerProvider()->GetTracer("");
   
   std::cout << "This example for zPages creates a few types of spans and then "

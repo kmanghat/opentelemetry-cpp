@@ -1,6 +1,8 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
+#include <iostream>
 
 #include "opentelemetry/ext/zpages/tracez_data_aggregator.h"
 #include "opentelemetry/ext/zpages/tracez_processor.h"
@@ -10,48 +12,60 @@
 #include "opentelemetry/sdk/trace/tracer_provider.h"
 #include "opentelemetry/nostd/shared_ptr.h"
 
- /*
-  * Wrapper class that allows users to use zPages by calling this class constructor. Currently only
-  * has TraceZ, but other types of zPages can be added in the future
-  */
+using std::chrono::microseconds;
+using opentelemetry::ext::zpages::TracezSpanProcessor;
+using opentelemetry::ext::zpages::TracezDataAggregator;
+using opentelemetry::ext::zpages::TracezHttpServer;
+
+/** 
+ * Wrapper for zPages that initializes all the components required for zPages,
+ * and starts the HTTP server in the constructor and ends it in the destructor.
+ * The constructor and destructor for this object is private to prevent 
+ * creation other than by calling the static function inialize. This follows the
+ * meyers singelton pattern and only a single instance of the class is allowed.
+ */
 class zPages {
- public:
-  zPages()
-    : tracez_processor_(std::make_shared<opentelemetry::ext::zpages::TracezSpanProcessor>()),
-      tracez_provider_(opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
-        new opentelemetry::sdk::trace::TracerProvider(tracez_processor_))) {
+public:
+  /**
+   * This function is called if the user wishes to include zPages in their 
+   * application. It creates a static instance of this class.
+   */
+  static void Initialize(){
+    static zPages instance;
+  }
+  
+private:
+  /**
+   * Constructor is responsible for initializing the tracer, tracez processor,
+   * tracez data aggregator and the tracez server. The server is also started in
+   * constructor.
+   */
+  zPages(){
+    auto tracez_processor_ = std::make_shared<TracezSpanProcessor>();
+    auto tracez_provider_ = 
+      opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider>(
+        new opentelemetry::sdk::trace::TracerProvider(tracez_processor_));
 
-    // Set the global trace provider for a user to use, which is connected to our span processor
+    auto tracez_aggregator = std::unique_ptr<TracezDataAggregator>(
+        new TracezDataAggregator(tracez_processor_));
+
+    tracez_server_ = std::unique_ptr<TracezHttpServer>
+      (new TracezHttpServer(std::move(tracez_aggregator)));
+      
+    tracez_server_->start();
+
     opentelemetry::trace::Provider::SetTracerProvider(tracez_provider_);
-
-    tracez_server_thread_ = std::thread(&zPages::RunTracezServer, this);
-    tracez_server_thread_.detach();
-
-    // Ensure zPages has time to setup, so the program doesn't crash
+    
+    // Give the server some time to set up to prevent crashes
     std::this_thread::sleep_for(setup_time_);
   }
-
- private:
- /*
-  * Runs the HTTP server in the background for TraceZ
-  */
-  void RunTracezServer() {
-    auto tracez_aggregator = std::unique_ptr<opentelemetry::ext::zpages::TracezDataAggregator>(
-        new opentelemetry::ext::zpages::TracezDataAggregator(tracez_processor_));
-
-    opentelemetry::ext::zpages::TracezHttpServer tracez_server(std::move(tracez_aggregator));
-    tracez_server.start();
-
-    // Keeps zPages server up indefinitely
-    while (1) std::this_thread::sleep_for(long_time_);
-    tracez_server.stop();
+  
+  ~zPages(){
+    // shut down the server when the object goes out of scope(at the end of the 
+    // program)
+    tracez_server_->stop();
   }
-
-
-  std::thread tracez_server_thread_;
-  std::shared_ptr<opentelemetry::ext::zpages::TracezSpanProcessor> tracez_processor_;
-  opentelemetry::nostd::shared_ptr<opentelemetry::trace::TracerProvider> tracez_provider_;
-  const std::chrono::duration<unsigned int, std::nano> setup_time_ = std::chrono::nanoseconds(100);
-  const std::chrono::duration<unsigned int, std::ratio<3600>> long_time_ = std::chrono::hours(9999);
+  std::unique_ptr<TracezHttpServer> tracez_server_;
+  const std::chrono::duration<unsigned int, std::nano> setup_time_ = microseconds(10);
 };
 
