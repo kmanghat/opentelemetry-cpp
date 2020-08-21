@@ -41,7 +41,7 @@ std::map<std::string, TracezData> TracezDataAggregator::GetAggregatedTracezData(
 }
 
 LatencyBoundary TracezDataAggregator::FindLatencyBoundary(
-    std::unique_ptr<ThreadsafeSpanData> &span_data)
+    std::unique_ptr<opentelemetry::sdk::trace::SpanData> &span_data)
 {
   const auto &span_data_duration = span_data->GetDuration();
   for (unsigned int boundary = 0; boundary < kLatencyBoundaries.size() - 1; boundary++)
@@ -50,6 +50,20 @@ LatencyBoundary TracezDataAggregator::FindLatencyBoundary(
       return (LatencyBoundary)boundary;
   }
   return LatencyBoundary::k100SecondToMax;
+}
+
+void TracezDataAggregator::InsertIntoSampleSpanList(std::list<opentelemetry::sdk::trace::SpanData> &sample_spans,
+                                        opentelemetry::sdk::trace::SpanData &span_data)
+{
+  /**
+   * Check to see if the sample span list size exceeds the set limit, if it does
+   * free up memory and remove the earliest inserted sample before appending
+   */
+  if (sample_spans.size() == kMaxNumberOfSampleSpans)
+  {
+    sample_spans.pop_front();
+  }
+  sample_spans.push_back(opentelemetry::sdk::trace::SpanData(span_data));
 }
 
 void TracezDataAggregator::InsertIntoSampleSpanList(std::list<ThreadsafeSpanData> &sample_spans,
@@ -93,7 +107,7 @@ void TracezDataAggregator::ClearRunningSpanData()
   }
 }
 
-void TracezDataAggregator::AggregateStatusOKSpan(std::unique_ptr<ThreadsafeSpanData> &ok_span)
+void TracezDataAggregator::AggregateStatusOKSpan(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &ok_span)
 {
   // Find and update boundary of aggregated data that span belongs
   auto boundary_name = FindLatencyBoundary(ok_span);
@@ -104,7 +118,7 @@ void TracezDataAggregator::AggregateStatusOKSpan(std::unique_ptr<ThreadsafeSpanD
   tracez_data.completed_span_count_per_latency_bucket[boundary_name]++;
 }
 
-void TracezDataAggregator::AggregateStatusErrorSpan(std::unique_ptr<ThreadsafeSpanData> &error_span)
+void TracezDataAggregator::AggregateStatusErrorSpan(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &error_span)
 {
   // Get data for name in aggregation and update count and sample spans
   auto &tracez_data = aggregated_tracez_data_.at(error_span->GetName().data());
@@ -113,7 +127,7 @@ void TracezDataAggregator::AggregateStatusErrorSpan(std::unique_ptr<ThreadsafeSp
 }
 
 void TracezDataAggregator::AggregateCompletedSpans(
-    std::vector<std::unique_ptr<ThreadsafeSpanData>> &completed_spans)
+    std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanData>> &completed_spans)
 {
   for (auto &completed_span : completed_spans)
   {

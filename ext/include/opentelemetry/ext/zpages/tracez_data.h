@@ -57,12 +57,12 @@ struct TracezData
    * corresponds to a latency boundary(of which there are 9).
    * The list in each index stores the sample spans for that latency boundary.
    */
-  std::array<std::list<ThreadsafeSpanData>, kLatencyBoundaries.size()> sample_latency_spans;
+  std::array<std::list<opentelemetry::sdk::trace::SpanData>, kLatencyBoundaries.size()> sample_latency_spans;
 
   /**
    * sample_error_spans is a list that stores the error samples for a span name.
    */
-  std::list<ThreadsafeSpanData> sample_error_spans;
+  std::list<opentelemetry::sdk::trace::SpanData> sample_error_spans;
 
   /**
    * sample_running_spans is a list that stores the running span samples for a

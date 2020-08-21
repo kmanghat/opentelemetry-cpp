@@ -88,6 +88,22 @@ private:
 class SpanData final : public Recordable
 {
 public:
+  SpanData() {}
+
+  SpanData(const SpanData &span_data)
+      : trace_id_(span_data.trace_id_),
+        span_id_(span_data.span_id_),
+        parent_span_id_(span_data.parent_span_id_),
+        start_time_(span_data.start_time_),
+        duration_(span_data.duration_),
+        name_(span_data.name_),
+        status_code_(span_data.status_code_),
+        status_desc_(span_data.status_desc_),
+        attribute_map_(span_data.attribute_map_),
+        events_(span_data.events_),
+        links_(span_data.links_)
+  {}
+
   /**
    * Get the trace id for this span
    * @return the trace id for this span
@@ -203,6 +219,7 @@ public:
   void SetDuration(std::chrono::nanoseconds duration) noexcept override { duration_ = duration; }
 
 private:
+
   opentelemetry::trace::TraceId trace_id_;
   opentelemetry::trace::SpanId span_id_;
   opentelemetry::trace::SpanId parent_span_id_;

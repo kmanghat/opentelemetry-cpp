@@ -24,7 +24,7 @@ void TracezSpanProcessor::OnEnd(
   {
     spans_.running.erase(span_it);
     spans_.completed.push_back(
-        std::unique_ptr<ThreadsafeSpanData>(static_cast<ThreadsafeSpanData *>(span.release())));
+        std::unique_ptr<opentelemetry::sdk::trace::SpanData>(static_cast<opentelemetry::sdk::trace::SpanData *>(span.release())));
   }
 }
 

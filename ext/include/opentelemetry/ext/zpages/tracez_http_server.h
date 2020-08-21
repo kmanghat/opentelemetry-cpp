@@ -95,6 +95,7 @@ private:
    * @returns JSON representing attributes for a given threadsafe span data
    */
   json GetAttributesJSON(const opentelemetry::ext::zpages::ThreadsafeSpanData &sample);
+  json GetAttributesJSON(const opentelemetry::sdk::trace::SpanData &sample);
 
   /**
    * Sets the response object with the TraceZ aggregation data based on the request endpoint

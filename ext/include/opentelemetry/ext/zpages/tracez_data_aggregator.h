@@ -73,7 +73,7 @@ private:
    * aggregation with the data of newly completed spans.
    * @param completed_spans are the newly completed spans.
    */
-  void AggregateCompletedSpans(std::vector<std::unique_ptr<ThreadsafeSpanData>> &completed_spans);
+  void AggregateCompletedSpans(std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanData>> &completed_spans);
 
   /**
    * AggregateRunningSpans aggregates the data for all running spans received
@@ -98,14 +98,14 @@ private:
    * with status code OK.
    * @param ok_span is the span who's data is to be aggregated
    */
-  void AggregateStatusOKSpan(std::unique_ptr<ThreadsafeSpanData> &ok_span);
+  void AggregateStatusOKSpan(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &ok_span);
 
   /**
    * AggregateStatusErrorSpans is the function that is called to update the
    * data of error spans
    * @param error_span is the error span who's data is to be aggregated
    */
-  void AggregateStatusErrorSpan(std::unique_ptr<ThreadsafeSpanData> &error_span);
+  void AggregateStatusErrorSpan(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &error_span);
 
   /**
    * ClearRunningSpanData is a function that is used to clear all running span
@@ -123,7 +123,7 @@ private:
    * @ returns LatencyBoundary is the latency boundary that the duration belongs
    * to
    */
-  LatencyBoundary FindLatencyBoundary(std::unique_ptr<ThreadsafeSpanData> &ok_span);
+  LatencyBoundary FindLatencyBoundary(std::unique_ptr<opentelemetry::sdk::trace::SpanData> &ok_span);
 
   /**
    * InsertIntoSampleSpanList is a helper function that is called to insert
@@ -134,6 +134,9 @@ private:
    */
   void InsertIntoSampleSpanList(std::list<ThreadsafeSpanData> &sample_spans,
                                 ThreadsafeSpanData &span_data);
+
+  void InsertIntoSampleSpanList(std::list<opentelemetry::sdk::trace::SpanData> &sample_spans,
+                                opentelemetry::sdk::trace::SpanData &span_data);
 
   /** Instance of span processor used to collect raw data **/
   std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;

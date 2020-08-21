@@ -19,7 +19,7 @@ using namespace opentelemetry::ext::zpages;
  * and running_spans. completed_spans contains all spans (cumulative), unless marked otherwise
  */
 void UpdateSpans(std::shared_ptr<TracezSpanProcessor> &processor,
-                 std::vector<std::unique_ptr<ThreadsafeSpanData>> &completed,
+                 std::vector<std::unique_ptr<SpanData>> &completed,
                  std::unordered_set<ThreadsafeSpanData *> &running,
                  bool store_only_new_completed = false)
 {
@@ -96,7 +96,7 @@ bool ContainsNames(const std::vector<std::string> &names,
  * no more or less
  */
 bool ContainsNames(const std::vector<std::string> &names,
-                   std::vector<std::unique_ptr<ThreadsafeSpanData>> &completed,
+                   std::vector<std::unique_ptr<SpanData>> &completed,
                    unsigned int name_start        = 0,
                    unsigned int name_end          = 0,
                    bool one_to_one_correspondence = false)
@@ -191,7 +191,7 @@ protected:
   std::vector<opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>> span_vars;
 
   std::unordered_set<ThreadsafeSpanData *> running;
-  std::vector<std::unique_ptr<ThreadsafeSpanData>> completed;
+  std::vector<std::unique_ptr<SpanData>> completed;
 };
 
 ///////////////////////////////////////// TESTS ///////////////////////////////////

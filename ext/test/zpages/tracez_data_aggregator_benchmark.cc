@@ -148,10 +148,10 @@ BENCHMARK_DEFINE_F(TracezAggregator, BM_BucketsUnique)(benchmark::State &state)
 }
 /////////////////////// RUN BENCHMARKS ///////////////////////////
 
-BENCHMARK_REGISTER_F(TracezAggregator, BM_InstantSame)->Arg(10)->Arg(1000);
-BENCHMARK_REGISTER_F(TracezAggregator, BM_InstantUnique)->Arg(10)->Arg(1000);
-BENCHMARK_REGISTER_F(TracezAggregator, BM_BucketsSame)->Arg(10)->Arg(1000);
-BENCHMARK_REGISTER_F(TracezAggregator, BM_BucketsUnique)->Arg(10)->Arg(1000);
+BENCHMARK_REGISTER_F(TracezAggregator, BM_InstantSame)->Threads(1);//->Arg(10)->Arg(1000);
+BENCHMARK_REGISTER_F(TracezAggregator, BM_InstantUnique)->Threads(1);//->Arg(10)->Arg(1000);
+BENCHMARK_REGISTER_F(TracezAggregator, BM_BucketsSame)->Threads(1);//->Arg(10)->Arg(1000);
+BENCHMARK_REGISTER_F(TracezAggregator, BM_BucketsUnique)->Threads(1);//Arg(10)->Arg(1000);
 
 BENCHMARK_MAIN();
 

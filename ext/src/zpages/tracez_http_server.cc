@@ -104,15 +104,10 @@ json TracezHttpServer::GetLatencySpansJSON(const std::string &name, int latency_
   return latency_json;
 }
 
-json TracezHttpServer::GetAttributesJSON(
-    const opentelemetry::ext::zpages::ThreadsafeSpanData &sample)
+void AddAttribute(const std::string &key,
+                  const opentelemetry::sdk::trace::SpanDataAttributeValue &val,
+                  json &attributes_json)
 {
-  auto attributes_json = json::object();
-  for (const auto &sample_attribute : sample.GetAttributes())
-  {
-    auto &key = sample_attribute.first;
-    auto &val = sample_attribute.second;  // SpanDataAttributeValue
-
     /* Convert variant types to into their nonvariant form. This is done this way because
        the frontend and JSON doesn't care about type, and variant's get function only allows
        const integers or literals */
@@ -150,6 +145,32 @@ json TracezHttpServer::GetAttributesJSON(
         attributes_json[key] = opentelemetry::nostd::get<9>(val);
         break;
     }
+
+
+}
+
+json TracezHttpServer::GetAttributesJSON(
+    const opentelemetry::ext::zpages::ThreadsafeSpanData &sample)
+{
+  auto attributes_json = json::object();
+  for (const auto &sample_attribute : sample.GetAttributes())
+  {
+    auto &key = sample_attribute.first;
+    auto &val = sample_attribute.second;  // SpanDataAttributeValue
+    AddAttribute(key, val, attributes_json);
+  }
+  return attributes_json;
+}
+
+json TracezHttpServer::GetAttributesJSON(
+    const opentelemetry::sdk::trace::SpanData &sample)
+{
+  auto attributes_json = json::object();
+  for (const auto &sample_attribute : sample.GetAttributes())
+  {
+    auto &key = sample_attribute.first;
+    auto &val = sample_attribute.second;  // SpanDataAttributeValue
+    AddAttribute(key, val, attributes_json);
   }
   return attributes_json;
 }

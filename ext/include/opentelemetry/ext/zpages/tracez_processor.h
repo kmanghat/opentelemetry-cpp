@@ -10,6 +10,7 @@
 #include "opentelemetry/ext/zpages/threadsafe_span_data.h"
 #include "opentelemetry/sdk/trace/processor.h"
 #include "opentelemetry/sdk/trace/recordable.h"
+#include "opentelemetry/sdk/trace/span_data.h"
 
 OPENTELEMETRY_BEGIN_NAMESPACE
 namespace ext
@@ -26,7 +27,7 @@ public:
   struct CollectedSpans
   {
     std::unordered_set<ThreadsafeSpanData *> running;
-    std::vector<std::unique_ptr<ThreadsafeSpanData>> completed;
+    std::vector<std::unique_ptr<opentelemetry::sdk::trace::SpanData>> completed;
   };
 
   /*
