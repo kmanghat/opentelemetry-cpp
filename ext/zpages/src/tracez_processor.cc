@@ -23,8 +23,8 @@ void TracezSpanProcessor::OnEnd(
   if (span_it != spans_.running.end())
   {
     spans_.running.erase(span_it);
-    spans_.completed.push_back(
-        std::unique_ptr<ThreadsafeSpanData>(static_cast<ThreadsafeSpanData *>(span.release())));
+    auto completed_span = std::unique_ptr<ThreadsafeSpanData>(static_cast<ThreadsafeSpanData *>(span.release()));
+    completed_buffer_.Add(completed_span);
   }
 }
 
@@ -33,8 +33,19 @@ TracezSpanProcessor::CollectedSpans TracezSpanProcessor::GetSpanSnapshot() noexc
   CollectedSpans snapshot;
   std::lock_guard<std::mutex> lock(mtx_);
   snapshot.running   = spans_.running;
-  snapshot.completed = std::move(spans_.completed);
-  spans_.completed.clear();
+  size_t complete_spans_size =
+      completed_buffer_.size() >= completed_max_size_ ? completed_max_size_ : completed_buffer_.size();
+
+  completed_buffer_.Consume(
+      complete_spans_size, [&](opentelemetry::sdk::common::CircularBufferRange<opentelemetry::sdk::common::AtomicUniquePtr<ThreadsafeSpanData>> range) noexcept {
+        range.ForEach([&](opentelemetry::sdk::common::AtomicUniquePtr<ThreadsafeSpanData> &ptr) {
+          std::unique_ptr<ThreadsafeSpanData> swap_ptr = std::unique_ptr<ThreadsafeSpanData>(nullptr);
+          ptr.Swap(swap_ptr);
+          snapshot.completed.push_back(std::unique_ptr<ThreadsafeSpanData>(swap_ptr.release()));
+          return true;
+        });
+      });
+
   return snapshot;
 }
 

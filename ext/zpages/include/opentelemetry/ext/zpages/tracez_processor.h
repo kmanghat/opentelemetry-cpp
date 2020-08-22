@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "opentelemetry/sdk/common/circular_buffer.h"
 #include "opentelemetry/ext/zpages/threadsafe_span_data.h"
 #include "opentelemetry/sdk/trace/processor.h"
 #include "opentelemetry/sdk/trace/recordable.h"
@@ -32,7 +33,7 @@ public:
   /*
    * Initialize a span processor.
    */
-  explicit TracezSpanProcessor() noexcept {}
+  explicit TracezSpanProcessor() noexcept : completed_buffer_(500) {}
 
   /*
    * Create a span recordable, which is span_data
@@ -91,6 +92,8 @@ public:
 private:
   mutable std::mutex mtx_;
   CollectedSpans spans_;
+  opentelemetry::sdk::common::CircularBuffer<ThreadsafeSpanData> completed_buffer_;
+  const size_t completed_max_size_ = 500;
 };
 }  // namespace zpages
 }  // namespace ext
