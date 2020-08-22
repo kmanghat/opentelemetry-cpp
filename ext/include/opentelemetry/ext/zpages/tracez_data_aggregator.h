@@ -81,7 +81,7 @@ class TracezDataAggregator {
    * span names can change while span is running and there seems to be
    * no trivial to way to know if it is a new or old running span so at every
    * call to this function the available running span data is reset and
-   * recalculated. At this time there is no unique way to identify a ThreadsafeSpanData
+   * recalculated. At this time there is no unique way to identify a span
    * object once this is done, there might be some better ways to do this.
    * TODO : SpanProcessor is never notified when a span name is changed while it
    * is running and that is propogated to the data aggregator. The running span
@@ -121,7 +121,7 @@ class TracezDataAggregator {
    * @ returns LatencyBoundary is the latency boundary that the duration belongs
    * to
    */
-  LatencyBoundary FindLatencyBoundary(ThreadsafeSpanData* span_data);
+  LatencyBoundary FindLatencyBoundary(std::unique_ptr<ThreadsafeSpanData> &ok_span);
 
   /**
    * InsertIntoSampleSpanList is a helper function that is called to insert
@@ -130,8 +130,8 @@ class TracezDataAggregator {
    * @param sample_spans the sample span list into which span is to be inserted
    * @param span_data the span_data to be inserted into list
    */
-  void InsertIntoSampleSpanList(std::list<SampleSpanData>& sample_spans,
-                                ThreadsafeSpanData& span_data);
+  void InsertIntoSampleSpanList(std::list<ThreadsafeSpanData>& sample_spans,
+                                ThreadsafeSpanData &span_data);
 
   /** Instance of span processor used to collect raw data **/
   std::shared_ptr<TracezSpanProcessor> tracez_span_processor_;
