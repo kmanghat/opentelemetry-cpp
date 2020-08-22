@@ -15,17 +15,20 @@ void TracezSpanProcessor::OnStart(opentelemetry::sdk::trace::Recordable &span) n
 void TracezSpanProcessor::OnEnd(
     std::unique_ptr<opentelemetry::sdk::trace::Recordable> &&span) noexcept
 {
-  if (span == nullptr)
-    return;
   auto span_raw = static_cast<ThreadsafeSpanData *>(span.get());
-  std::lock_guard<std::mutex> lock(mtx_);
+  mtx_.lock();
   auto span_it = spans_.running.find(span_raw);
   if (span_it != spans_.running.end())
   {
     spans_.running.erase(span_it);
-    auto completed_span = std::unique_ptr<ThreadsafeSpanData>(static_cast<ThreadsafeSpanData *>(span.release()));
-    completed_buffer_.Add(completed_span);
+    mtx_.unlock();
+    if (span != nullptr) {
+      auto completed_span = std::unique_ptr<ThreadsafeSpanData>(static_cast<ThreadsafeSpanData *>(span.release()));
+      completed_buffer_.Add(completed_span);
+    }
   }
+  else
+    mtx_.unlock();
 }
 
 TracezSpanProcessor::CollectedSpans TracezSpanProcessor::GetSpanSnapshot() noexcept
