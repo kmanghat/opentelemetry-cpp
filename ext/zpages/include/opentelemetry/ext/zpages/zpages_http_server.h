@@ -125,7 +125,7 @@ private:
       [&](HTTP_SERVER_NS::HttpRequest const &req, HTTP_SERVER_NS::HttpResponse &resp) {
         std::string query = GetQuery(req.uri);  // tracez
         resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "text/html";
-        resp.body                                  = "Current zPages available:" + m_serverHost + "/tracez\n";
+        resp.body                                  = "Current zPages available: " + m_serverHost + "/tracez\n";
         return 404;
       }};
 
