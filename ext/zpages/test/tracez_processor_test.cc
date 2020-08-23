@@ -165,11 +165,7 @@ void EndAllSpans(std::vector<opentelemetry::nostd::shared_ptr<opentelemetry::tra
     span->End();
 }
 
-//////////////////////////////// TEST FIXTURE //////////////////////////////////////
-
-/*
- * Reduce code duplication by having single area with shared setup code
- */
+//////////////////// TEST FIXTURES TO REDUCE CODE DUPlICATION ////////////////////////
 
 class TracezProcessorCorrectness : public ::testing::Test
 {
@@ -209,6 +205,8 @@ protected:
 
   std::vector<opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>> spans1;
   std::vector<opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>> spans2;
+
+  const int numSpans = 500;
 };
 
 ///////////////////////////////////////// TESTS ///////////////////////////////////
@@ -521,8 +519,8 @@ TEST_F(TracezProcessorCorrectness, FlushShutdown)
  */
 TEST_F(TracezProcessorThreadSafety, RunningThreadSafety)
 {
-  std::thread start(StartManySpans, std::ref(spans1), tracer, 500);
-  StartManySpans(spans2, tracer, 500);
+  std::thread start(StartManySpans, std::ref(spans1), tracer, numSpans);
+  StartManySpans(spans2, tracer, numSpans);
 
   start.join();
 
@@ -535,8 +533,8 @@ TEST_F(TracezProcessorThreadSafety, RunningThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, CompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, 500);
-  StartManySpans(spans2, tracer, 500);
+  StartManySpans(spans1, tracer, numSpans);
+  StartManySpans(spans2, tracer, numSpans);
 
   std::thread end(EndAllSpans, std::ref(spans1));
   EndAllSpans(spans2);
@@ -549,15 +547,15 @@ TEST_F(TracezProcessorThreadSafety, CompletedThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, SnapshotThreadSafety)
 {
-  std::thread snap1(GetManySnapshots, std::ref(processor), 500);
-  GetManySnapshots(processor, 500);
+  std::thread snap1(GetManySnapshots, std::ref(processor), numSpans);
+  GetManySnapshots(processor, numSpans);
 
   snap1.join();
 
-  StartManySpans(spans1, tracer, 500);
+  StartManySpans(spans1, tracer, numSpans);
 
-  std::thread snap2(GetManySnapshots, std::ref(processor), 500);
-  GetManySnapshots(processor, 500);
+  std::thread snap2(GetManySnapshots, std::ref(processor), numSpans);
+  GetManySnapshots(processor, numSpans);
 
   snap2.join();
 
@@ -569,9 +567,9 @@ TEST_F(TracezProcessorThreadSafety, SnapshotThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, RunningCompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, 500);
+  StartManySpans(spans1, tracer, numSpans);
 
-  std::thread start(StartManySpans, std::ref(spans2), tracer, 500);
+  std::thread start(StartManySpans, std::ref(spans2), tracer, numSpans);
   EndAllSpans(spans1);
 
   start.join();
@@ -583,8 +581,8 @@ TEST_F(TracezProcessorThreadSafety, RunningCompletedThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, RunningSnapshotThreadSafety)
 {
-  std::thread snapshots(GetManySnapshots, std::ref(processor), 500);
-  StartManySpans(spans1, tracer, 500);
+  std::thread snapshots(GetManySnapshots, std::ref(processor), numSpans);
+  StartManySpans(spans1, tracer, numSpans);
 
   snapshots.join();
 
@@ -596,9 +594,9 @@ TEST_F(TracezProcessorThreadSafety, RunningSnapshotThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, SnapshotCompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, 500);
+  StartManySpans(spans1, tracer, numSpans);
 
-  std::thread snapshots(GetManySnapshots, std::ref(processor), 500);
+  std::thread snapshots(GetManySnapshots, std::ref(processor), numSpans);
   EndAllSpans(spans1);
 
   snapshots.join();
@@ -609,10 +607,10 @@ TEST_F(TracezProcessorThreadSafety, SnapshotCompletedThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, RunningSnapshotCompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, 500);
+  StartManySpans(spans1, tracer, numSpans);
 
-  std::thread start(StartManySpans, std::ref(spans2), tracer, 500);
-  std::thread snapshots(GetManySnapshots, std::ref(processor), 500);
+  std::thread start(StartManySpans, std::ref(spans2), tracer, numSpans);
+  std::thread snapshots(GetManySnapshots, std::ref(processor), numSpans);
   EndAllSpans(spans1);
 
   start.join();
