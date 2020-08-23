@@ -70,8 +70,17 @@ BENCHMARK_DEFINE_F(TracezProcessor, BM_RunComplete)(benchmark::State &state)
   const int numSpans = state.range(0);
   for (auto _ : state)
   {
+    std::vector<opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>> spans2;
+
     StartManySpans(spans, tracer, numSpans);
-    EndAllSpans(spans);
+
+    std::thread start(StartManySpans, std::ref(spans2), tracer, numSpans);
+    std::thread end(EndAllSpans, std::ref(spans));
+
+    start.join();
+    end.join();
+
+    EndAllSpans(spans2);
   }
 }
 
