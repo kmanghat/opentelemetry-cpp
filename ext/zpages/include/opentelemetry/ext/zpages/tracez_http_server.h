@@ -43,6 +43,7 @@ public:
         data_aggregator_(std::move(aggregator))
   {
     InitializeTracezEndpoint(*this);
+    InitializeZpagesEndpoint(*this);
   };
 
 private:

@@ -19,16 +19,14 @@ class zPagesHttpServer : public HTTP_SERVER_NS::HttpServer
 {
 protected:
   /**
-   * Construct the server by initializing the endpoint for serving static files, which show up on
-   * the web if the user is on the given host:port. Static files can be seen relative to the folder
-   * where the executable was ran.
-   * @param host is the host where the TraceZ webpages will be displayed
-   * @param port is the port where the TraceZ webpages will be displayed
-   * @param endpoint is where this specific zPage will server files
+   * Construct the base server for serving zPages.
+   * @param host is the host where the default landing page is displayed
+   * @param port is the port where the default landing page is displayed
+   * @param endpoint is where this specific zPage, who inherits this, serves info
    */
   zPagesHttpServer(const std::string &endpoint,
                    const std::string &host = "127.0.0.1",
-                   int port                = 52620)
+                   int port                = 3000)
       : HttpServer(), endpoint_(endpoint)
   {
     std::ostringstream os;
@@ -36,6 +34,12 @@ protected:
     setServerName(os.str());
     addListeningPort(port);
   };
+
+  /**
+   * Set the HTTP server to display zPages links are when an unused endpoint is hit
+   * @param server, which should be an instance of this object
+   */
+  void InitializeZpagesEndpoint(zPagesHttpServer &server) { server["/"] = ServeBase; }
 
   /**
    * Helper function that returns query information by isolating it from the base endpoint
@@ -109,6 +113,22 @@ protected:
   }
 
   const std::string endpoint_;
+
+
+private:
+  /**
+   * Sets the response object to a prompt to where zPages are being served
+   * @param req is the HTTP request. This is any URL not captured by existing zPages
+   * @param resp is the HTTP response we want to send to the frontend. This is static
+   */
+  HTTP_SERVER_NS::HttpRequestCallback ServeBase{
+      [&](HTTP_SERVER_NS::HttpRequest const &req, HTTP_SERVER_NS::HttpResponse &resp) {
+        std::string query = GetQuery(req.uri);  // tracez
+        resp.headers[HTTP_SERVER_NS::CONTENT_TYPE] = "text/html";
+        resp.body                                  = "Current zPages available:" + m_serverHost + "/tracez\n";
+        return 404;
+      }};
+
   const std::unordered_map<std::string, std::string> replace_map_ = {{"%20", " "}};
 };
 
