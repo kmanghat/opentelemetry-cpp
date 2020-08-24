@@ -148,7 +148,7 @@ void GetManySnapshots(std::shared_ptr<TracezSpanProcessor> &processor, int i)
  */
 void StartManySpans(
     std::vector<opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span>> &spans,
-    std::shared_ptr<opentelemetry::trace::Tracer> tracer,
+    std::shared_ptr<opentelemetry::trace::Tracer> &tracer,
     int i)
 {
   for (; i > 0; i--)
@@ -519,8 +519,8 @@ TEST_F(TracezProcessorCorrectness, FlushShutdown)
  */
 TEST_F(TracezProcessorThreadSafety, RunningThreadSafety)
 {
-  std::thread start(StartManySpans, std::ref(spans1), tracer, numSpans);
-  StartManySpans(spans2, tracer, numSpans);
+  std::thread start(StartManySpans, std::ref(spans1), std::ref(tracer), numSpans);
+  StartManySpans(spans2, std::ref(tracer), numSpans);
 
   start.join();
 
@@ -533,8 +533,8 @@ TEST_F(TracezProcessorThreadSafety, RunningThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, CompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, numSpans);
-  StartManySpans(spans2, tracer, numSpans);
+  StartManySpans(spans1, std::ref(tracer), numSpans);
+  StartManySpans(spans2, std::ref(tracer), numSpans);
 
   std::thread end(EndAllSpans, std::ref(spans1));
   EndAllSpans(spans2);
@@ -552,7 +552,7 @@ TEST_F(TracezProcessorThreadSafety, SnapshotThreadSafety)
 
   snap1.join();
 
-  StartManySpans(spans1, tracer, numSpans);
+  StartManySpans(spans1, std::ref(tracer), numSpans);
 
   std::thread snap2(GetManySnapshots, std::ref(processor), numSpans);
   GetManySnapshots(processor, numSpans);
@@ -567,9 +567,9 @@ TEST_F(TracezProcessorThreadSafety, SnapshotThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, RunningCompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, numSpans);
+  StartManySpans(spans1, std::ref(tracer), numSpans);
 
-  std::thread start(StartManySpans, std::ref(spans2), tracer, numSpans);
+  std::thread start(StartManySpans, std::ref(spans2), std::ref(tracer), numSpans);
   EndAllSpans(spans1);
 
   start.join();
@@ -582,7 +582,7 @@ TEST_F(TracezProcessorThreadSafety, RunningCompletedThreadSafety)
 TEST_F(TracezProcessorThreadSafety, RunningSnapshotThreadSafety)
 {
   std::thread snapshots(GetManySnapshots, std::ref(processor), numSpans);
-  StartManySpans(spans1, tracer, numSpans);
+  StartManySpans(spans1, std::ref(tracer), numSpans);
 
   snapshots.join();
 
@@ -594,7 +594,7 @@ TEST_F(TracezProcessorThreadSafety, RunningSnapshotThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, SnapshotCompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, numSpans);
+  StartManySpans(spans1, std::ref(tracer), numSpans);
 
   std::thread snapshots(GetManySnapshots, std::ref(processor), numSpans);
   EndAllSpans(spans1);
@@ -607,9 +607,9 @@ TEST_F(TracezProcessorThreadSafety, SnapshotCompletedThreadSafety)
  */
 TEST_F(TracezProcessorThreadSafety, RunningSnapshotCompletedThreadSafety)
 {
-  StartManySpans(spans1, tracer, numSpans);
+  StartManySpans(spans1, std::ref(tracer), numSpans);
 
-  std::thread start(StartManySpans, std::ref(spans2), tracer, numSpans);
+  std::thread start(StartManySpans, std::ref(spans2), std::ref(tracer), numSpans);
   std::thread snapshots(GetManySnapshots, std::ref(processor), numSpans);
   EndAllSpans(spans1);
 
